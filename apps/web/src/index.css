@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 6% 4%;
+    --foreground: 240 5% 90%;
+    --card: 240 5% 7%;
+    --card-foreground: 240 5% 90%;
+    --primary: 187 72% 47%;     /* Cyan #06b6d4 */
+    --primary-foreground: 0 0% 0%;
+    --muted: 240 4% 10%;
+    --muted-foreground: 240 5% 65%;
+    --border: 0 0% 100% / 0.08;
+    --destructive: 347 77% 50%; /* Rose #f43f5e */
+    --warning: 38 92% 50%;      /* Amber #f59e0b */
+    --success: 160 60% 45%;     /* Emerald #10b981 */
+    --purple: 270 60% 60%;      /* Purple #a855f7 */
+  }
+
+  body {
+    font-family: 'Noto Sans Arabic', 'Inter', -apple-system, sans-serif;
+    background-color: #0a0a0a;
+    color: #e4e4e7;
+    @apply antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+    @apply tracking-tight font-bold text-white;
+  }
+
+  html[dir="rtl"] body {
+    font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+    letter-spacing: 0px !important;
+  }
+}
+
+/* ========== GLASS MORPHISM ========== */
+.glass, .glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ========== NEON GLOWS ========== */
+.neon-cyan { box-shadow: 0 0 30px rgba(6, 182, 212, 0.12); }
+.neon-emerald { box-shadow: 0 0 30px rgba(16, 185, 129, 0.12); }
+.neon-purple { box-shadow: 0 0 30px rgba(168, 85, 247, 0.12); }
+.neon-amber { box-shadow: 0 0 30px rgba(245, 158, 11, 0.12); }
+.neon-rose { box-shadow: 0 0 30px rgba(244, 63, 94, 0.12); }
+
+/* ========== TEXT GLOWS ========== */
+.glow-text-cyan { text-shadow: 0 0 30px rgba(6, 182, 212, 0.5); }
+.glow-text-emerald { text-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
+.glow-text-amber { text-shadow: 0 0 30px rgba(245, 158, 11, 0.5); }
+.glow-text-purple { text-shadow: 0 0 30px rgba(168, 85, 247, 0.5); }
+.glow-text-rose { text-shadow: 0 0 30px rgba(244, 63, 94, 0.5); }
+.glow-text-white { text-shadow: 0 0 40px rgba(255, 255, 255, 0.15); }
+
+/* ========== TEXT GRADIENTS ========== */
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, #a1a1aa 50%, #fff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========== BACKGROUNDS ========== */
+.grid-bg {
+  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.hero-gradient {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+}
+
+/* ========== NOISE OVERLAY ========== */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ========== CARDS & PANELS ========== */
+.bento-card {
+  @apply transition-all duration-300;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bento-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.bento-card.active {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+/* Inner top-edge light effect */
+.inner-glow {
+  position: relative;
+  overflow: hidden;
+}
+.inner-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 40%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Spotlight (mouse-follow) */
+.spotlight-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.spotlight-wrapper:hover::before {
+  opacity: 1;
+}
+
+/* ========== INPUTS ========== */
+.glass-input {
+  background-color: rgba(24, 24, 27, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e4e4e7;
+  @apply rounded-xl px-4 py-3 placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500/40 transition-all duration-200;
+}
+
+.glass-input:focus {
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2), 0 0 30px rgba(6, 182, 212, 0.1);
+}
+
+.textarea-glow:focus {
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2), 0 0 30px rgba(6, 182, 212, 0.1);
+}
+
+/* ========== BUTTONS ========== */
+.btn-primary {
+  @apply relative overflow-hidden rounded-xl border border-cyan-500/30 bg-white/5 backdrop-blur-sm px-6 py-3 font-medium transition-all duration-300 flex items-center justify-center;
+  color: hsl(var(--primary));
+}
+.btn-primary:hover {
+  @apply bg-white/10 border-cyan-400/60;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+}
+.btn-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  @apply rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-2 font-medium transition-all duration-300 flex items-center justify-center text-zinc-300;
+}
+.btn-secondary:hover {
+  @apply bg-white/10 border-white/20 text-white;
+}
+
+.btn-neon {
+  @apply relative overflow-hidden rounded-xl border bg-white/5 backdrop-blur-sm px-6 py-3 font-medium transition-all duration-300 hover:bg-white/10;
+}
+
+.btn-neon-cyan { @apply border-cyan-500/30 text-cyan-300 hover:border-cyan-400/60 hover:shadow-lg; }
+.btn-neon-emerald { @apply border-emerald-500/30 text-emerald-300 hover:border-emerald-400/60 hover:shadow-lg; }
+.btn-neon-rose { @apply border-rose-500/30 text-rose-300 hover:border-rose-400/60 hover:shadow-lg; }
+.btn-neon-purple { @apply border-purple-500/30 text-purple-300 hover:border-purple-400/60 hover:shadow-lg; }
+.btn-neon-amber { @apply border-amber-500/30 text-amber-300 hover:border-amber-400/60 hover:shadow-lg; }
+
+/* ========== STATUS GLOWS ========== */
+.border-primary-glow {
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+}
+.border-warning-glow {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+}
+.border-destructive-glow {
+  border-color: rgba(244, 63, 94, 0.6);
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
+}
+
+/* ========== SCROLLBAR ========== */
+.terminal-scroll::-webkit-scrollbar,
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* ========== ANIMATIONS ========== */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+.animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+.scanline { position: relative; overflow: hidden; }
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.02), transparent);
+  animation: scanline 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient { background-size: 200% 200%; animation: gradient-x 8s ease infinite; }
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+.terminal-cursor::after {
+  content: '▋';
+  animation: cursorBlink 1s step-end infinite;
+  color: rgba(6, 182, 212, 0.8);
+  margin-right: 2px;
+}
+
+.typing-cursor::after {
+  content: '▋';
+  animation: cursorBlink 1s step-end infinite;
+  color: rgba(6, 182, 212, 0.8);
+  margin-right: 2px;
+}
+
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-bubble { animation: bubbleIn 0.4s ease-out forwards; }
+
+/* ========== GAUGE ========== */
+.gauge-bg { stroke: rgba(255, 255, 255, 0.05); }
+.gauge-fill { transition: stroke-dashoffset 2s ease-out; }
+
+/* ========== UTILITY ========== */
+.num-ltr {
+  direction: ltr !important;
+  unicode-bidi: embed;
+}
+
+.text-muted {
+  color: #a1a1aa;
+}
+
+/* ========== LEGACY COMPAT ========== */
+.bento-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  @apply rounded-2xl transition-all duration-300;
+}
+.bento-panel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}

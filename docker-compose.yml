@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # 1. Supabase-compatible PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: qoom-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: qoom
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. Redis Cache Store (Used for BullMQ and Rate Limiters)
+  redis:
+    image: redis:7-alpine
+    container_name: qoom-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. NestJS API Core Server
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: qoom-api
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:password123@db:5432/qoom?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: super_secret_qoom_jwt_signing_key_at_least_12_chars
+      FRONTEND_URL: http://localhost
+      GEMINI_API_KEY: ${GEMINI_API_KEY} # Passed from host env
+    ports:
+      - "3001:3001"
+
+  # 4. React Client Web Server (Nginx)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: qoom-web
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:

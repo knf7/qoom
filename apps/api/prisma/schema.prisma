@@ -1,0 +1,135 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  name      String?
+  role      String     @default("USER")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  projects  Project[]
+  auditLogs AuditLog[]
+
+  @@index([email])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  status      String    @default("DRAFT")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scans       Scan[]
+
+  @@index([userId])
+}
+
+model Scan {
+  id              String        @id @default(uuid())
+  status          String        @default("PENDING")    // ScanStatus: PENDING|RUNNING|INTERVIEWING|RESEARCH_REQUIRED|COMPLETED|PARTIAL|FAILED
+  verdict         String?                               // ScanVerdict: PASS|FAIL|INTERVIEWING|RESEARCH_REQUIRED|PARTIAL
+  score           Int?
+  decision        String?                               // Legacy: orchestrator LLM verdict string
+  confidence      Float         @default(0)
+  summary         String?
+  recommendation  String?
+  payload         String?                               // JSON string (full orchestrator result)
+  errors          String?                               // JSON string (array of agent errors)
+  missingEvidence String?                               // JSON string (array of missing evidence items)
+  results         AgentResult[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+}
+
+model AgentResult {
+  id              String   @id @default(uuid())
+  agentType       String
+  status          String   @default("SUCCESS")          // AgentExecStatus: SUCCESS|FAILED|TIMEOUT|RATE_LIMITED
+  score           Int?                                   // Nullable: failed agents have no score
+  risks           String?                                // JSON string — nullable for failed agents
+  opportunities   String?                                // JSON string — nullable for failed agents
+  recommendation  String?                                // Nullable for failed agents
+  analysis        String?                                // JSON string — nullable for failed agents
+  processingTimeMs Int     @default(0)
+  errorCode       String?
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  scanId          String
+  scan            Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([scanId])
+  @@index([agentType])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  ipAddress String?
+  userAgent String?
+  details   String?
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+}
+
+model DeadLetterQueue {
+  id          String   @id @default(uuid())
+  scanId      String
+  payload     String
+  error       String
+  retryCount  Int      @default(0)
+  status      String   @default("FAILED") // FAILED, RECOVERED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([scanId])
+  @@index([status])
+}
+
+model HistoricalVenturePattern {
+  id             String   @id @default(uuid())
+  category       String
+  failureRate    Float    // 0.0 to 1.0
+  commonRisks    String   // JSON array string
+  successFactors String   // JSON array string
+  updatedAt      DateTime @updatedAt
+
+  @@index([category])
+}
+
+model FailureLog {
+  id             String   @id @default(uuid())
+  scanId         String
+  agentType      String?
+  errorStack     String
+  context        String?  // JSON string of input state
+  resolved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([scanId])
+  @@index([agentType])
+  @@index([resolved])
+}

@@ -1,0 +1,21 @@
+{
+  "architecture_score": 0,
+  "retrieval_score": 0,
+  "hallucination_resistance": 0,
+  "runtime_reliability": 0,
+  "security_score": 0,
+  "performance_score": 0,
+  "evidence_quality": 0,
+  "agent_reasoning_score": 0,
+  "frontend_truthfulness_score": 0,
+  "overall_verdict": "NEEDS_MAJOR_WORK",
+  "critical_failures": [
+    "Setup failed: Could not acquire JWT token."
+  ],
+  "warnings": [],
+  "recommended_fixes": [],
+  "agent_latency_breakdown": {},
+  "retrieval_accuracy_breakdown": {},
+  "hallucination_examples": [],
+  "fake_intelligence_detected": false
+}
