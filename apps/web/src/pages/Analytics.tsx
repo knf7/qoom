@@ -54,21 +54,41 @@ export default function Analytics() {
 
   projectsWithScans.forEach(p => {
     const scan = p.scans[0];
-    if (scan.decision === 'BUILD') buildCount++;
-    if (scan.decision === 'PIVOT') pivotCount++;
-    if (scan.decision === 'KILL') killCount++;
+    const rawDecision = (scan.verdict || scan.decision || '').toUpperCase();
+    
+    if (rawDecision === 'PASS' || rawDecision.includes('BUILD') || rawDecision.includes('STRONG GO') || rawDecision.includes('GO')) {
+      buildCount++;
+    } else if (rawDecision === 'FAIL' || rawDecision === 'FAILED' || rawDecision.includes('KILL')) {
+      killCount++;
+    } else {
+      pivotCount++; // default/fallback for PARTIAL, PIVOT, etc.
+    }
+    
     if (scan.score) totalScoreSum += scan.score;
   });
 
   const averageScore = totalScans > 0 ? Math.round(totalScoreSum / totalScans) : 0;
 
   const getDecisionBadge = (decision: string) => {
-    switch (decision) {
-      case 'BUILD': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'PIVOT': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'KILL': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      default: return 'bg-zinc-800 text-zinc-400 border-white/10';
+    const d = (decision || '').toUpperCase();
+    if (d === 'BUILD' || d === 'PASS' || d.includes('STRONG GO') || d.includes('GO')) {
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     }
+    if (d === 'KILL' || d === 'FAIL' || d === 'FAILED') {
+      return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+    }
+    return 'bg-amber-500/10 text-amber-400 border-amber-500/20'; // default/fallback for PIVOT, PARTIAL, etc.
+  };
+
+  const getDecisionText = (decision: string) => {
+    const d = (decision || '').toUpperCase();
+    if (d === 'BUILD' || d === 'PASS' || d.includes('STRONG GO') || d.includes('GO')) {
+      return lang === 'ar' ? 'اعتماد التأسيس (BUILD)' : 'BUILD';
+    }
+    if (d === 'KILL' || d === 'FAIL' || d === 'FAILED') {
+      return lang === 'ar' ? 'إيقاف العمل (KILL)' : 'KILL';
+    }
+    return lang === 'ar' ? 'تعديل المسار (PIVOT)' : 'PIVOT';
   };
 
   return (
@@ -293,8 +313,8 @@ export default function Analytics() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                              <span className={`text-[10px] font-bold num-ltr px-2 py-0.5 rounded-md border ${getDecisionBadge(scan.decision)}`}>
-                                {scan.decision}
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${getDecisionBadge(scan.verdict || scan.decision || 'PARTIAL')}`}>
+                                {getDecisionText(scan.verdict || scan.decision || 'PARTIAL')}
                               </span>
                               <button
                                 onClick={() => navigate(`/scan/${scan.id}`)}

@@ -46,7 +46,7 @@ export default function TopNav() {
         </Link>
 
         {/* Center: Navigation Pills */}
-        <div className="glass rounded-full p-1 flex items-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <div className="hidden md:flex glass rounded-full p-1 flex items-center border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
           {user ? (
             <>
               <Link
@@ -197,6 +197,19 @@ export default function TopNav() {
                       </Link>
 
                       <Link
+                        to="/copilot"
+                        onClick={() => setIsProfileOpen(false)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                          isActive('/copilot')
+                            ? 'bg-white/10 text-white'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <User size={14} className="text-cyan-400" />
+                        <span>مساعد الأفكار (Co-Pilot)</span>
+                      </Link>
+
+                      <Link
                         to="/analytics"
                         onClick={() => setIsProfileOpen(false)}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
@@ -228,9 +241,17 @@ export default function TopNav() {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="glass px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-              <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">NODE . ONLINE</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <div className="flex items-center gap-2">
+              <Link
+                to="/auth?mode=login"
+                className="md:hidden px-3 py-1.5 glass border border-white/10 hover:border-cyan-500/30 rounded-full text-xs font-bold text-white transition-all pointer-events-auto"
+              >
+                تسجيل الدخول
+              </Link>
+              <div className="hidden md:flex glass px-3 py-1.5 rounded-full items-center gap-2 border border-white/10">
+                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">NODE . ONLINE</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+              </div>
             </div>
           )}
         </div>

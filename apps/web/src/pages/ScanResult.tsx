@@ -1060,11 +1060,11 @@ ${oldDescription}
                                   <CheckCircle2 size={14} className="text-emerald-400" />
                                 </span>
                               </div>
-                              <ul className="space-y-2 text-right">
+                              <ul className="space-y-2 text-right" dir="rtl">
                                 {agent.sections.known.items.map((item: string, i: number) => (
-                                  <li key={i} className="text-xs md:text-sm text-zinc-400 flex justify-end items-start gap-2">
-                                    <span className="leading-relaxed">{item}</span>
-                                    <span className="text-emerald-500 font-bold mt-0.5">•</span>
+                                  <li key={i} className="text-xs md:text-sm text-zinc-400 flex items-start gap-2 justify-start text-right">
+                                    <span className="text-emerald-500 font-bold mt-1 text-base leading-none">•</span>
+                                    <span className="leading-relaxed flex-1">{item}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -1080,11 +1080,11 @@ ${oldDescription}
                                   <HelpCircle size={14} className="text-amber-400" />
                                 </span>
                               </div>
-                              <ul className="space-y-2 text-right">
+                              <ul className="space-y-2 text-right" dir="rtl">
                                 {agent.sections.unknown.items.map((item: string, i: number) => (
-                                  <li key={i} className="text-xs md:text-sm text-zinc-400 flex justify-end items-start gap-2">
-                                    <span className="leading-relaxed">{item}</span>
-                                    <span className="text-amber-500 font-bold mt-0.5">•</span>
+                                  <li key={i} className="text-xs md:text-sm text-zinc-400 flex items-start gap-2 justify-start text-right">
+                                    <span className="text-amber-500 font-bold mt-1 text-base leading-none">•</span>
+                                    <span className="leading-relaxed flex-1">{item}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -1167,13 +1167,13 @@ ${oldDescription}
                           <span>أولوية عالية</span>
                           <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
                         </div>
-                        <ul className="space-y-2 pr-4 text-right">
+                        <ul className="space-y-2 pr-4 text-right" dir="rtl">
                           {synthesis.actionItems
                             .filter((item: any) => item.priority === 'HIGH')
                             .map((item: any, i: number) => (
-                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex justify-end items-start gap-2">
-                                <span className="leading-relaxed">{item.text}</span>
-                                <span className="text-rose-500 font-bold mt-0.5">•</span>
+                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex items-start gap-2 justify-start text-right">
+                                <span className="text-rose-500 font-bold mt-1 text-base leading-none">•</span>
+                                <span className="leading-relaxed flex-1">{item.text}</span>
                               </li>
                             ))}
                         </ul>
@@ -1186,13 +1186,13 @@ ${oldDescription}
                           <span>أولوية متوسطة</span>
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                         </div>
-                        <ul className="space-y-2 pr-4 text-right">
+                        <ul className="space-y-2 pr-4 text-right" dir="rtl">
                           {synthesis.actionItems
                             .filter((item: any) => item.priority === 'MEDIUM')
                             .map((item: any, i: number) => (
-                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex justify-end items-start gap-2">
-                                <span className="leading-relaxed">{item.text}</span>
-                                <span className="text-amber-500 font-bold mt-0.5">•</span>
+                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex items-start gap-2 justify-start text-right">
+                                <span className="text-amber-500 font-bold mt-1 text-base leading-none">•</span>
+                                <span className="leading-relaxed flex-1">{item.text}</span>
                               </li>
                             ))}
                         </ul>
@@ -1205,13 +1205,13 @@ ${oldDescription}
                           <span>أولوية منخفضة</span>
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                         </div>
-                        <ul className="space-y-2 pr-4 text-right">
+                        <ul className="space-y-2 pr-4 text-right" dir="rtl">
                           {synthesis.actionItems
                             .filter((item: any) => item.priority === 'LOW')
                             .map((item: any, i: number) => (
-                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex justify-end items-start gap-2">
-                                <span className="leading-relaxed">{item.text}</span>
-                                <span className="text-emerald-500 font-bold mt-0.5">•</span>
+                              <li key={i} className="text-xs md:text-sm text-zinc-300 flex items-start gap-2 justify-start text-right">
+                                <span className="text-emerald-500 font-bold mt-1 text-base leading-none">•</span>
+                                <span className="leading-relaxed flex-1">{item.text}</span>
                               </li>
                             ))}
                         </ul>
