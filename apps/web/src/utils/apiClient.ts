@@ -1,7 +1,18 @@
 import { useStore } from '../store/useStore';
 
-// @ts-ignore
-export const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001';
+const getApiUrl = () => {
+  const metaEnv = (import.meta as any).env;
+  if (metaEnv?.VITE_API_URL) {
+    return metaEnv.VITE_API_URL;
+  }
+  // If running in production (not localhost/127.0.0.1), use the live Render API url
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://qoom.onrender.com';
+  }
+  return 'http://localhost:3001';
+};
+
+export const API_URL = getApiUrl();
 
 interface FetchOptions extends RequestInit {
   data?: any;
