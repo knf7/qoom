@@ -117,3 +117,21 @@ The platform is fully configured and live in production:
 - **Build Settings**: Uses `npm run build` and automatically resolves the API URL to `https://qoom.onrender.com` when run in production.
 - **Auto-deployment**: Automatically redeploys on every git push to the `main` branch.
 
+---
+
+## 🎨 واجهة وتصميم الابتكار الحديث (Redesign V3.2)
+
+تم تحسين واجهة المنصة بالكامل لتكون متوافقة مع المتطلبات الجديدة:
+1. **تصميم الصفحة الرئيسية (Landing Page Redesign):**
+   - تم حذف صندوق مدخلات الفكرة (Input Bar) لتبسيط التصميم وجعله أكثر جاذبية واحترافية.
+   - إضافة لوحة محاكاة تفاعلية مبتكرة تعرض الوكلاء الخمسة (Market, Tech, Moat, Finance, Risk) وهم يدورون حول نواة نظام "قُوم" المركزي باستخدام حركات متحركة من `framer-motion` وخطوط نقل بيانات مباشرة.
+   - زر دعوة لاتخاذ إجراء مباشر (CTA) يوجه المستخدمين إلى مساعد الأفكار الذكي.
+
+2. **دعم الاتجاه واللغة (RTL & Arabic):**
+   - ضبط اتجاه صفحة مساعد الأفكار (Co-Pilot) بالكامل لتبدأ من اليمين إلى اليسار (`dir="rtl"`) متوافقة مع اللغة العربية وخط `Cairo`.
+   - توفير مدخل الفكرة الاستثمارية بخلفية زجاجية أنيقة وجديدة بداخل صفحة المساعد.
+
+3. **إلغاء الإيموجيز واستبدالها برسومات تقنية (Lucide Icons):**
+   - تم استبدال كافة التعبيرات والإيموجيز القديمة من جميع شاشات التقرير، المحادثات، والملفات بنسب أيقونات تقنية وحية من مكتبة `lucide-react` (مثل `Sparkles`, `Cpu`, `Coins`, `Shield`, `Target`, `Compass` وغيرها) لخلق مظهر مؤسسي ونظيف.
+
+
