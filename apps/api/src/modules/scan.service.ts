@@ -148,28 +148,42 @@ export class ScanService {
     }
 
     // 2. User Scan Limit & Daily Renewal Logic
-    const totalUserScans = await this.prisma.scan.count({
-      where: {
-        project: {
-          userId: userId
-        },
-        status: { not: 'FAILED' }
-      }
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { scanCredits: true },
     });
 
-    if (totalUserScans >= 2) {
-      // If user has used their 2 initial free scans, they get 1 scan per 24 hours
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      const scansInLast24Hours = await this.prisma.scan.count({
+    if (!user) {
+      throw new NotFoundException('User profile not found.');
+    }
+
+    let usePaidCredit = false;
+    if (user.scanCredits > 0) {
+      usePaidCredit = true;
+    } else {
+      const totalUserScans = await this.prisma.scan.count({
         where: {
-          project: { userId },
-          createdAt: { gte: oneDayAgo },
+          project: {
+            userId: userId
+          },
           status: { not: 'FAILED' }
         }
       });
 
-      if (scansInLast24Hours >= 1) {
-        throw new BadRequestException('لقد استنفدت التحليلات المجانية المتاحة لك. يتجدد رصيدك بمعدل تحليل واحد يومياً، يرجى المحاولة لاحقاً بعد مرور 24 ساعة من آخر تحليل.');
+      if (totalUserScans >= 2) {
+        // If user has used their 2 initial free scans, they get 1 scan per 24 hours
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const scansInLast24Hours = await this.prisma.scan.count({
+          where: {
+            project: { userId },
+            createdAt: { gte: oneDayAgo },
+            status: { not: 'FAILED' }
+          }
+        });
+
+        if (scansInLast24Hours >= 1) {
+          throw new BadRequestException('لقد استنفدت التحليلات المجانية المتاحة لك. يتجدد رصيدك بمعدل تحليل واحد يومياً، يرجى المحاولة لاحقاً بعد مرور 24 ساعة من آخر تحليل أو شراء رصيد إضافي.');
+        }
       }
     }
 
@@ -244,6 +258,14 @@ export class ScanService {
         }),
       },
     });
+
+    if (usePaidCredit) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { scanCredits: { decrement: 1 } },
+      });
+      this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${user.scanCredits - 1}`);
+    }
 
     await this.prisma.auditLog.create({
       data: {

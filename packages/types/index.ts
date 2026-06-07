@@ -33,6 +33,7 @@ export interface AuthResponse {
     email: string;
     name: string | null;
     role: 'USER' | 'ADMIN';
+    scanCredits?: number;
   };
 }
 

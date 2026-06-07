@@ -37,6 +37,7 @@
     "rate-limiter-flexible": "^5.0.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
+    "stripe": "^22.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

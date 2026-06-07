@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
   Target, 
@@ -17,11 +17,64 @@ import {
   Network
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { apiClient } from '../utils/apiClient';
+import ThinkingCanvas from '../components/ThinkingCanvas';
 
 export default function Landing() {
   const navigate = useNavigate();
   const { user, token } = useStore();
+
+  React.useEffect(() => {
+    if (user && token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, token, navigate]);
   
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLaunchScan = async () => {
+    if (description.trim().length < 5) return;
+    setIsValidating(true);
+    setError(null);
+    try {
+      // 1. Create a project
+      const title = `فكرة مشروع - ${new Date().toLocaleDateString('ar-SA')}`;
+      const project = await apiClient('/projects', {
+        method: 'POST',
+        data: { title, description },
+      });
+
+      // 2. Validate idea
+      await apiClient('/validate-idea', {
+        method: 'POST',
+        data: { description },
+      });
+
+      setIsValidating(false);
+      setIsSubmitting(true);
+
+      // 3. Trigger scan
+      const scanData = await apiClient('/scan', {
+        method: 'POST',
+        data: { projectId: project.id },
+      });
+
+      if (scanData.scanId) {
+        navigate(`/scan/${scanData.scanId}`);
+      } else {
+        setError(scanData.message || 'فشل في إطلاق التحليل. حاول مرة أخرى.');
+        setIsSubmitting(false);
+      }
+    } catch (err: any) {
+      setIsValidating(false);
+      setIsSubmitting(false);
+      setError(err.message || 'فكرة غير واضحة أو فشل في التحقق');
+    }
+  };
+
   const handleStart = () => {
     if (!user || !token) {
       navigate('/auth?mode=register');
@@ -92,28 +145,77 @@ export default function Landing() {
           </motion.p>
 
           {/* Main Action Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="w-full flex flex-col sm:flex-row gap-4 pt-4"
-          >
-            <button
-              onClick={handleStart}
-              className="bg-white hover:bg-zinc-200 text-black rounded-full px-8 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_30px_rgba(255,255,255,0.15)] hover:scale-102"
-            >
-              <span>أطلق مساعد الأفكار (Co-Pilot)</span>
-              <ArrowLeft size={16} />
-            </button>
+          {user && token ? (
+            <div className="w-full space-y-6 pt-4">
+              {/* Show error toast if any */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-sm flex items-center justify-between backdrop-blur-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Bot size={16} className="text-rose-400" />
+                      {error}
+                    </span>
+                    <button onClick={() => setError(null)} className="text-rose-400/60 hover:text-rose-300 transition-colors">
+                      ✕
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <ThinkingCanvas
+                value={description}
+                onChange={setDescription}
+                placeholder="اكتب فكرتك الريادية هنا بالتفصيل... مثلاً: منصة لربط المزارعين بالمطاعم مباشرة لتقليل الهدر."
+                isSubmitting={isSubmitting}
+                isValidating={isValidating}
+                onTriggerScan={handleLaunchScan}
+              />
 
-            <Link
-              to="/dashboard"
-              className="glass hover:bg-white/5 text-white border border-white/10 rounded-full px-8 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all"
+              <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 pt-2">
+                <Link
+                  to="/copilot"
+                  className="text-xs font-semibold text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <Sparkles size={12} className="text-cyan-400 animate-pulse" />
+                  أو ابدأ باستخدام مساعد الأفكار الإرشادي (Co-Pilot)
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  تصفح كافة المشاريع السابقة ←
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="w-full flex flex-col sm:flex-row gap-4 pt-4"
             >
-              <Bot size={16} className="text-cyan-400" />
-              <span>تصفح لوحة التحكم الخاصة بك</span>
-            </Link>
-          </motion.div>
+              <button
+                onClick={handleStart}
+                className="bg-white hover:bg-zinc-200 text-black rounded-full px-8 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-[0_4px_30px_rgba(255,255,255,0.15)] hover:scale-102"
+              >
+                <span>أطلق مساعد الأفكار (Co-Pilot)</span>
+                <ArrowLeft size={16} />
+              </button>
+
+              <Link
+                to="/auth?mode=login"
+                className="glass hover:bg-white/5 text-white border border-white/10 rounded-full px-8 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all"
+              >
+                <Bot size={16} className="text-cyan-400" />
+                <span>تسجيل الدخول للنظام</span>
+              </Link>
+            </motion.div>
+          )}
           
           {/* Micro stats under action */}
           <motion.div 
