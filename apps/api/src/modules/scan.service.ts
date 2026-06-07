@@ -136,7 +136,18 @@ export class ScanService {
       throw new NotFoundException('The requested project was not found or is inaccessible.');
     }
 
-    // SECURITY LIMIT: Max 2 scans per user
+    // Global concurrent limit: Max 3 scans processing at the same time globally to prevent server overload
+    const globalActiveScans = await this.prisma.scan.count({
+      where: {
+        status: { in: ['PENDING', 'PROCESSING'] }
+      }
+    });
+
+    if (globalActiveScans >= 3) {
+      throw new BadRequestException('الموقع مزدحم حالياً بطلبات فحص أخرى. يرجى المحاولة بعد قليل.');
+    }
+
+    // 2. User Scan Limit & Daily Renewal Logic
     const totalUserScans = await this.prisma.scan.count({
       where: {
         project: {
@@ -147,7 +158,19 @@ export class ScanService {
     });
 
     if (totalUserScans >= 2) {
-      throw new BadRequestException('لقد استنفدت الحد الأقصى للتحليلات المتاحة لحسابك (تحليلين فقط).');
+      // If user has used their 2 initial free scans, they get 1 scan per 24 hours
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const scansInLast24Hours = await this.prisma.scan.count({
+        where: {
+          project: { userId },
+          createdAt: { gte: oneDayAgo },
+          status: { not: 'FAILED' }
+        }
+      });
+
+      if (scansInLast24Hours >= 1) {
+        throw new BadRequestException('لقد استنفدت التحليلات المجانية المتاحة لك. يتجدد رصيدك بمعدل تحليل واحد يومياً، يرجى المحاولة لاحقاً بعد مرور 24 ساعة من آخر تحليل.');
+      }
     }
 
     // 2. Proactive security check: run PromptFirewallService unified pipeline (Heuristics -> AI scoring -> Policy engine)
