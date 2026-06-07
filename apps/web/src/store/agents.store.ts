@@ -26,14 +26,14 @@ interface AgentsStore {
 }
 
 const INITIAL_AGENTS: Record<string, AgentState> = {
-  orchestrator: { id: 'orchestrator', name: 'Queen', role: 'Swarm Orchestrator', status: 'IDLE', color: '#10B981' },
-  market: { id: 'market', name: 'MarketAgent', role: 'Market Strategist', status: 'IDLE', color: '#10B981' },
-  competition: { id: 'competition', name: 'CompetitionAgent', role: 'Competitive Intelligence', status: 'IDLE', color: '#f97316' },
-  finance: { id: 'finance', name: 'MonetizationAgent', role: 'Financial Analyst', status: 'IDLE', color: '#f59e0b' },
-  feasibility: { id: 'feasibility', name: 'FeasibilityAgent', role: 'Tech Architect', status: 'IDLE', color: '#06b6d4' },
-  risk: { id: 'risk', name: 'RiskAgent', role: 'Risk Analyst', status: 'IDLE', color: '#f43f5e' },
-  regulatory: { id: 'regulatory', name: 'RegulatoryAgent', role: 'Compliance Officer', status: 'IDLE', color: '#3b82f6' },
-  validator: { id: 'validator', name: 'EvidenceValidator', role: 'Skeptical Auditor', status: 'IDLE', color: '#8b5cf6' },
+  orchestrator: { id: 'orchestrator', name: 'قوم', role: 'Swarm Orchestrator', status: 'IDLE', color: '#10B981' },
+  market: { id: 'market', name: 'السوق والناس', role: 'Market Strategist', status: 'IDLE', color: '#10B981' },
+  competition: { id: 'competition', name: 'المنافسة', role: 'Competitive Intelligence', status: 'IDLE', color: '#f97316' },
+  finance: { id: 'finance', name: 'البزنس والفلوس', role: 'Financial Analyst', status: 'IDLE', color: '#f59e0b' },
+  feasibility: { id: 'feasibility', name: 'التقنية والتنفيذ', role: 'Tech Architect', status: 'IDLE', color: '#06b6d4' },
+  risk: { id: 'risk', name: 'المخاطر والتحديات', role: 'Risk Analyst', status: 'IDLE', color: '#f43f5e' },
+  regulatory: { id: 'regulatory', name: 'التشريعات والامتثال', role: 'Compliance Officer', status: 'IDLE', color: '#3b82f6' },
+  validator: { id: 'validator', name: 'التحقق والتدقيق', role: 'Skeptical Auditor', status: 'IDLE', color: '#8b5cf6' },
 };
 
 export const useAgentsStore = create<AgentsStore>((set) => ({
