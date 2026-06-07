@@ -50,14 +50,14 @@ export default function TopNav() {
           {user ? (
             <>
               <Link
-                to="/"
+                to="/dashboard"
                 className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                  isActive('/')
+                  isActive('/dashboard')
                     ? 'bg-white/10 text-white' 
                     : 'text-zinc-500 hover:text-white'
                 }`}
               >
-                تحليل جديد
+                المشاريع
               </Link>
               <Link
                 to="/copilot"
