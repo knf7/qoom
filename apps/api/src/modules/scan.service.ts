@@ -136,7 +136,7 @@ export class ScanService {
       throw new NotFoundException('The requested project was not found or is inaccessible.');
     }
 
-    // SECURITY LIMIT: Max 100 scans per user
+    // SECURITY LIMIT: Max 2 scans per user
     const totalUserScans = await this.prisma.scan.count({
       where: {
         project: {
@@ -146,8 +146,8 @@ export class ScanService {
       }
     });
 
-    if (totalUserScans >= 100) {
-      throw new BadRequestException('لقد استنفدت الحد الأقصى للتحليلات المتاحة لحسابك (100 تحليل).');
+    if (totalUserScans >= 2) {
+      throw new BadRequestException('لقد استنفدت الحد الأقصى للتحليلات المتاحة لحسابك (تحليلين فقط).');
     }
 
     // 2. Proactive security check: run PromptFirewallService unified pipeline (Heuristics -> AI scoring -> Policy engine)
