@@ -42,7 +42,7 @@ export default function Landing() {
           animate={{ opacity: 1, y: 0 }}
           className="glass border border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2 mb-8"
         >
-          <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">QOOM . VENTURE INTELLIGENCE</span>
+          <span className="text-[10px] font-sans tracking-wide text-zinc-500 font-semibold">قُوم • منصة الذكاء الاستثماري</span>
           <Sparkles size={12} className="text-amber-500" />
         </motion.div>
 
@@ -51,18 +51,18 @@ export default function Landing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight text-white"
+          className="text-6xl md:text-8xl font-black tracking-tight mb-4 text-white glow-text-white"
         >
-          من فكرة خام<br />إلى قرار استثماري حاسم.
+          قُوم
         </motion.h1>
 
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
+          className="text-zinc-400 text-sm md:text-base max-w-xl mx-auto mb-16 leading-relaxed font-medium"
         >
-          QOOM هي منصة ذكاء استثماري عربية. صف فكرتك بجملة واحدة، وسيقوم نظامنا بتشريحها عبر خمسة وكلاء مؤسسيين، ليخرج لك بحكم واضح: تنفيذ، محور، أو إلغاء.
+          من مجرد فكرة ببالك إلى مشروع حقيقي ومدروس.
         </motion.p>
 
         {/* Error Toast */}
