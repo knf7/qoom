@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, User, BarChart3, Settings, CreditCard, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import Logo from './Logo';
 
 export default function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useStore();
 
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const isActive = (path: string) => location.pathname === path;
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Render nothing in auth if needed, or keep it consistent
   if (location.pathname === '/auth') return null;
@@ -55,18 +69,16 @@ export default function TopNav() {
               >
                 مساعد الأفكار (Co-Pilot)
               </Link>
-              
-              {/* Logout Button */}
-              <button
-                onClick={() => {
-                  logout();
-                  navigate('/auth');
-                }}
-                className="px-3 py-1.5 text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-all ml-2 flex items-center"
-                title="تسجيل خروج"
+              <Link
+                to="/analytics"
+                className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  isActive('/analytics')
+                    ? 'bg-white/10 text-white' 
+                    : 'text-zinc-500 hover:text-white'
+                }`}
               >
-                <LogOut size={16} />
-              </button>
+                التحليلات العامة
+              </Link>
             </>
           ) : (
             <>
@@ -95,46 +107,126 @@ export default function TopNav() {
         </div>
 
         {/* Left Side (placed last in HTML to render on the left in RTL): User Actions & Full Projects */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" ref={dropdownRef}>
           {user ? (
-            <>
-              {/* Projects Dashboard Link */}
-              <Link
-                to="/dashboard"
-                className={`glass px-4 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  isActive('/dashboard')
-                    ? 'border-cyan-500/30 text-cyan-400 bg-cyan-500/5'
-                    : 'border-white/10 text-zinc-400 hover:text-white hover:bg-white/5'
-                }`}
+            <div className="relative">
+              {/* Profile Toggle Avatar */}
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 glass border border-white/10 hover:border-cyan-500/30 rounded-full transition-all active:scale-95 text-zinc-400 hover:text-white"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive('/dashboard') ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-500'}`} />
-                المشاريع كاملة
-              </Link>
-
-              {/* Scan Credits Balance */}
-              <div className="glass px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-mono text-zinc-400 flex items-center gap-1.5">
-                <span className="text-zinc-500">الرصيد:</span>
-                <span className="text-cyan-400 font-bold font-mono">
+                <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180 text-cyan-400' : ''}`} />
+                
+                {/* User scan credits count quick badge */}
+                <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded-full">
                   {user.scanCredits ?? 0}
                 </span>
-                <span className="text-zinc-500 font-sans">تحليل</span>
-              </div>
 
-              {/* Dynamic User Avatar */}
-              <div 
-                className="w-8 h-8 rounded-full glass border border-white/10 flex items-center justify-center text-[10px] font-bold text-zinc-400 hover:text-white transition-colors"
-                title={user.name || user.email}
-              >
-                {(() => {
-                  const name = user.name || user.email || '';
-                  const parts = name.trim().split(' ');
-                  if (parts.length >= 2) {
-                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                  }
-                  return name[0]?.toUpperCase() || 'ع';
-                })()}
-              </div>
-            </>
+                {/* Avatar Initials */}
+                <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-bold text-zinc-300">
+                  {(() => {
+                    const name = user.name || user.email || '';
+                    const parts = name.trim().split(' ');
+                    if (parts.length >= 2) {
+                      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                    }
+                    return name[0]?.toUpperCase() || 'ع';
+                  })()}
+                </div>
+              </button>
+
+              {/* Profile Dropdown */}
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute left-0 mt-3 w-72 glass rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 text-right p-5 space-y-4"
+                    dir="rtl"
+                  >
+                    {/* User Details */}
+                    <div className="flex items-center gap-3 pb-3 border-b border-white/5">
+                      <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xs font-bold text-cyan-400">
+                        {(() => {
+                          const name = user.name || user.email || '';
+                          const parts = name.trim().split(' ');
+                          if (parts.length >= 2) {
+                            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                          }
+                          return name[0]?.toUpperCase() || 'ع';
+                        })()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-white truncate">{user.name || 'مستخدم قوم'}</div>
+                        <div className="text-[10px] text-zinc-500 truncate num-ltr text-right">{user.email}</div>
+                      </div>
+                    </div>
+
+                    {/* Scan Credits Account (Stripe) */}
+                    <div className="p-3 bg-cyan-950/20 border border-cyan-500/10 rounded-xl space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-zinc-400">رصيد التحليلات المدفوعة:</span>
+                        <span className="text-cyan-400 font-bold font-mono">{user.scanCredits ?? 0}</span>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          navigate('/dashboard'); // dashboard can host Stripe payments trigger
+                        }}
+                        className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <CreditCard size={12} />
+                        شراء رصيد تحليلات (Stripe)
+                      </button>
+                    </div>
+
+                    {/* Navigation Links */}
+                    <div className="space-y-1">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsProfileOpen(false)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                          isActive('/dashboard')
+                            ? 'bg-white/10 text-white'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Settings size={14} className="text-cyan-400" />
+                        <span>المشاريع الكاملة (لوحة التحكم)</span>
+                      </Link>
+
+                      <Link
+                        to="/analytics"
+                        onClick={() => setIsProfileOpen(false)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                          isActive('/analytics')
+                            ? 'bg-white/10 text-white'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <BarChart3 size={14} className="text-cyan-400" />
+                        <span>تحليلات المشاريع العامة</span>
+                      </Link>
+                    </div>
+
+                    {/* Logout */}
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        logout();
+                        navigate('/auth');
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all border-t border-white/5 pt-3"
+                    >
+                      <LogOut size={14} />
+                      <span>تسجيل الخروج</span>
+                    </button>
+
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ) : (
             <div className="glass px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
               <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">NODE . ONLINE</span>

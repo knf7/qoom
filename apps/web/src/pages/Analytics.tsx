@@ -72,8 +72,12 @@ export default function Analytics() {
   };
 
   return (
-    <div className="min-h-screen grid-bg">
-      <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 relative">
+    <div className="min-h-screen relative overflow-hidden bg-zinc-950 text-white" dir="rtl">
+      {/* Hero Gradient Background */}
+      <div className="hero-gradient absolute inset-0 pointer-events-none" />
+      <div className="grid-bg absolute inset-0 pointer-events-none opacity-40" />
+
+      <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
