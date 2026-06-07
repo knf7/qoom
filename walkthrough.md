@@ -99,3 +99,21 @@ npm run dev
 ### 3. Access Qoom
 - **React Client Portal**: Open [http://localhost:5173](http://localhost:5173) to analyze your first idea!
 - **NestJS API Server**: Listens on [http://localhost:3001](http://localhost:3001).
+
+---
+
+## 🌐 Production Deployment
+
+The platform is fully configured and live in production:
+
+### 1. Backend API (Render)
+- **Deployment URL**: `https://qoom.onrender.com`
+- **Database**: Connected to **Supabase** via transaction pooler (`aws-1-ap-southeast-1.pooler.supabase.com:6543`).
+- **Caching & Queue**: Integrated with **Upstash Redis** (`optimal-iguana-144252.upstash.io:6379`).
+- **Auto-deployment**: Enabled on Render linked to GitHub repo `knf7/qoom` (branch `main`).
+
+### 2. Frontend Client (Vercel)
+- **Deployment URL**: `https://qoom-web.vercel.app`
+- **Build Settings**: Uses `npm run build` and automatically resolves the API URL to `https://qoom.onrender.com` when run in production.
+- **Auto-deployment**: Automatically redeploys on every git push to the `main` branch.
+
