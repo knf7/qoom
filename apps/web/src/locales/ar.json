@@ -111,8 +111,8 @@
     "guidanceTitle": "الإرشادات الاستراتيجية والخطوة القادمة",
     "shareBtn": "مشاركة جواز السفر",
     "breakdownTitle": "التقارير التفصيلية للوكلاء",
-    "risksLabel": "⚠️ المخاطر الجوهرية",
-    "opportunitiesLabel": "💡 الفرص الاستراتيجية",
+    "risksLabel": "المخاطر الجوهرية",
+    "opportunitiesLabel": "الفرص الاستراتيجية",
     "recommendationLabel": "التوصية التنفيذية للوكيل"
   },
   "passport": {
@@ -150,7 +150,7 @@
     "neuralBandwidth": "النطاق العصبي للشبكة",
     "consensusEngine": "نظام التوافق المشترك - 5 وكلاء ذكاء اصطناعي مستقلين",
     "replayCinematic": "إعادة الفحص السينمائي",
-    "replayInvestigation": "إعادة تشغيل الفحص والتحليل ⚡",
+    "replayInvestigation": "إعادة تشغيل الفحص والتحليل",
     "interactiveMapTitle": "خارطة مساهمة الوكلاء المستقلين التفاعلية",
     "interactiveMapDesc": "انقر أو مرر الفأرة فوق عقدة أي وكيل ذكاء اصطناعي لتشغيل مسار الليزر النشط وفحص Dossier التحليل الخاص به.",
     "dimensionScore": "درجة مساهمة البعد",

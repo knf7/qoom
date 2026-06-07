@@ -104,8 +104,8 @@
     "guidanceTitle": "Actionable Strategic Guidance",
     "shareBtn": "Share Passport",
     "breakdownTitle": "Specialized Agent breakdowns",
-    "risksLabel": "⚠️ Key Risks Identified",
-    "opportunitiesLabel": "💡 Strategic Opportunities",
+    "risksLabel": "Key Risks Identified",
+    "opportunitiesLabel": "Strategic Opportunities",
     "recommendationLabel": "Agent Executive Recommendation"
   },
   "passport": {
@@ -143,7 +143,7 @@
     "neuralBandwidth": "Neural Bandwidth",
     "consensusEngine": "Consensus Engine - 5 Co-operating Artificial Agents",
     "replayCinematic": "REPLAY CINEMATIC RUN",
-    "replayInvestigation": "REPLAY ACTIVE INVESTIGATION ⚡",
+    "replayInvestigation": "REPLAY ACTIVE INVESTIGATION",
     "interactiveMapTitle": "Interactive Agent Contribution Network Map",
     "interactiveMapDesc": "Click or hover over any agent intelligence node to light up the active laser telemetry link and explore their specific dossier.",
     "dimensionScore": "DIMENSION SCORE",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Sparkles, CheckCircle2, Terminal, Target, Bot, Coins, ArrowLeft, Loader2, Download, Share2 } from 'lucide-react';
+import { Shield, Sparkles, CheckCircle2, Terminal, Target, Bot, Coins, ArrowLeft, Loader2, Download, Share2, AlertCircle, AlertTriangle, Cpu, HelpCircle, Activity, Compass, Zap, BrainCircuit, XCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useI18n } from '../utils/i18n';
 import DOMPurify from 'dompurify';
@@ -13,6 +13,28 @@ export default function ScanResult() {
   const navigate = useNavigate();
   const { token, user } = useStore();
   const { isScanning, scanProgress, initializeSwarm, updateAgentStatus, addTerminalLog, setScanning, setScanProgress, reset, agents, terminalLogs } = useAgentsStore();
+
+  const getAgentIcon = (agentId: string) => {
+    switch (agentId) {
+      case 'MarketAgent':
+        return <Target className="text-emerald-400 shrink-0" size={20} />;
+      case 'CompetitionAgent':
+        return <Shield className="text-slate-400 shrink-0" size={20} />;
+      case 'MonetizationAgent':
+        return <Coins className="text-amber-400 shrink-0" size={20} />;
+      case 'FeasibilityAgent':
+        return <Terminal className="text-cyan-400 shrink-0" size={20} />;
+      case 'RiskAgent':
+        return <AlertCircle className="text-rose-400 shrink-0" size={20} />;
+      default:
+        return <Bot className="text-cyan-400 shrink-0" size={20} />;
+    }
+  };
+
+  const cleanTitle = (title: string) => {
+    if (!title) return '';
+    return title.replace(/[\uD83C-\uDBFF\uDC00-\uDFFF\u2600-\u27BF]\s*/g, '').trim();
+  };
 
   const [scan, setScan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,11 +90,11 @@ ${oldDescription}
   };
 
   const agentNamesAr: Record<string, string> = {
-    'MarketAgent': '📊 دراسة السوق والطلب (MarketAgent)',
-    'CompetitionAgent': '⚔️ تحليل المنافسة والبدائل (CompetitionAgent)',
-    'MonetizationAgent': '💰 نموذج الإيرادات والربحية (MonetizationAgent)',
-    'FeasibilityAgent': '⚙️ الجدوى الفنية والتقنية (FeasibilityAgent)',
-    'RiskAgent': '⚠️ إدارة المخاطر والعقبات (RiskAgent)'
+    'MarketAgent': 'دراسة السوق والطلب (MarketAgent)',
+    'CompetitionAgent': 'تحليل المنافسة والبدائل (CompetitionAgent)',
+    'MonetizationAgent': 'نموذج الإيرادات والربحية (MonetizationAgent)',
+    'FeasibilityAgent': 'الجدوى الفنية والتقنية (FeasibilityAgent)',
+    'RiskAgent': 'إدارة المخاطر والعقبات (RiskAgent)'
   };
 
   const statusLabels: Record<string, { text: string, color: string, bg: string, border: string }> = {
@@ -685,7 +707,7 @@ ${oldDescription}
             };
             const agentsList = payload.agents || [];
             const synthesis = payload.synthesis || {
-              title: '🧠 التوليفة الاستراتيجية',
+              title: 'التوليفة الاستراتيجية',
               summary: scan?.recommendation || 'بناءً على آراء الوكلاء...',
               content: scan?.recommendation || 'بناءً على آراء الوكلاء...',
               actionItems: []
@@ -706,7 +728,7 @@ ${oldDescription}
                     <div className="flex flex-col gap-1">
                       <h1 className="text-3xl md:text-4xl font-black text-white flex items-center justify-end gap-3">
                         <span>{meta.ideaTitle}</span>
-                        <span className="text-2xl">💎</span>
+                        <Sparkles className="text-cyan-400 shrink-0" size={28} />
                       </h1>
                       <p className="text-zinc-400 text-sm md:text-base mt-2 font-medium leading-relaxed max-w-2xl">
                         {meta.ideaSubtitle}
@@ -719,7 +741,10 @@ ${oldDescription}
                         executiveSummary.verdictColor === 'rose' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_20px_rgba(244,63,94,0.1)]' :
                         'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.1)]'
                       }`}>
-                        ⚠️ {executiveSummary.verdict}
+                        {executiveSummary.verdictColor === 'emerald' ? <CheckCircle2 size={12} className="inline-block ml-1" /> :
+                         executiveSummary.verdictColor === 'rose' ? <XCircle size={12} className="inline-block ml-1" /> :
+                         <AlertTriangle size={12} className="inline-block ml-1" />}
+                        <span>{executiveSummary.verdict}</span>
                       </span>
                       <span className="text-[10px] font-mono text-zinc-500">{meta.scanDate && `تاريخ الفحص: ${meta.scanDate}`}</span>
                     </div>
@@ -772,7 +797,7 @@ ${oldDescription}
                     </p>
                     {executiveSummary.keyInsight && (
                       <p className="text-sm text-zinc-400 mt-3 border-t border-white/5 pt-3">
-                        💡 <span className="font-bold">ملاحظة جوهرية:</span> {executiveSummary.keyInsight}
+                        <Sparkles size={14} className="text-cyan-400 inline-block ml-1" /> <span className="font-bold">ملاحظة جوهرية:</span> {executiveSummary.keyInsight}
                       </p>
                     )}
                   </div>
@@ -783,17 +808,23 @@ ${oldDescription}
                   <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
                     <div className="flex flex-col gap-6">
                       <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
                           payload.problemInference.status === 'EXPLICIT' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                           payload.problemInference.status === 'INFERRED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                           'bg-rose-500/10 text-rose-400 border-rose-500/20'
                         }`}>
-                          {payload.problemInference.status === 'EXPLICIT' ? '✅ مذكورة صراحة' :
-                           payload.problemInference.status === 'INFERRED' ? '⚠️ مستنتجة — المستخدم لم يذكرها صراحة' :
-                           '❓ غير واضحة — ما فهمت المشكلة'}
+                          {payload.problemInference.status === 'EXPLICIT' ? <CheckCircle2 size={12} className="shrink-0" /> :
+                           payload.problemInference.status === 'INFERRED' ? <AlertTriangle size={12} className="shrink-0" /> :
+                           <HelpCircle size={12} className="shrink-0" />}
+                          <span>
+                            {payload.problemInference.status === 'EXPLICIT' ? 'مذكورة صراحة' :
+                             payload.problemInference.status === 'INFERRED' ? 'مستنتجة — المستخدم لم يذكرها صراحة' :
+                             'غير واضحة — ما فهمت المشكلة'}
+                          </span>
                         </span>
-                        <h2 className="text-xl md:text-2xl font-black text-white">
-                          🔍 تحليل المشكلة المستنتجة (Problem Inference)
+                        <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-3">
+                          <Compass size={22} className="text-cyan-400 shrink-0" />
+                          <span>تحليل المشكلة المستنتجة (Problem Inference)</span>
                         </h2>
                       </div>
 
@@ -815,7 +846,7 @@ ${oldDescription}
                             </p>
                             {payload.problemInference.reasoning && (
                               <p className="text-xs text-zinc-400 mt-3 border-t border-white/5 pt-3">
-                                💡 <span className="font-bold">سبب الاستنتاج:</span> {payload.problemInference.reasoning}
+                                <HelpCircle size={14} className="text-amber-500 inline-block ml-1" /> <span className="font-bold">سبب الاستنتاج:</span> {payload.problemInference.reasoning}
                               </p>
                             )}
                           </div>
@@ -924,34 +955,47 @@ ${oldDescription}
                 {/* Refined Idea Section */}
                 {payload.refinedIdea && (
                   <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
-                    <h2 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center justify-end gap-2">
-                      <span>💎 الفكرة المُصقلة (Refined Venture DNA)</span>
+                    <h2 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center justify-end gap-2.5">
+                      <Sparkles size={22} className="text-cyan-400 shrink-0" />
+                      <span>الفكرة المُصقلة (Refined Venture DNA)</span>
                     </h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 block mb-1">💡 الحل المقترح</span>
+                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                          <Sparkles size={12} className="text-cyan-400" />
+                          <span>الحل المقترح</span>
+                        </span>
                         <p className="text-xs md:text-sm text-zinc-200 font-medium leading-relaxed">
                           {payload.refinedIdea.solution}
                         </p>
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 block mb-1">🎯 الجمهور المستهدف</span>
+                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                          <Target size={12} className="text-emerald-400" />
+                          <span>الجمهور المستهدف</span>
+                        </span>
                         <p className="text-xs md:text-sm text-zinc-200 font-medium leading-relaxed">
                           {payload.refinedIdea.targetAudience}
                         </p>
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 block mb-1">💰 نموذج العمل المالي</span>
+                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                          <Coins size={12} className="text-amber-400" />
+                          <span>نموذج العمل المالي</span>
+                        </span>
                         <p className="text-xs md:text-sm text-zinc-200 font-medium leading-relaxed">
                           {payload.refinedIdea.businessModel}
                         </p>
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 block mb-1">🚀 الميزة التنافسية</span>
+                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                          <Zap size={12} className="text-purple-400" />
+                          <span>الميزة التنافسية</span>
+                        </span>
                         <p className="text-xs md:text-sm text-zinc-200 font-medium leading-relaxed">
                           {payload.refinedIdea.uniqueEdge}
                         </p>
@@ -989,8 +1033,9 @@ ${oldDescription}
                             {agent.statusLabel || 'تحليل جزئي'}
                           </span>
                           <div className="flex items-center gap-3">
-                            <h3 className="text-lg md:text-xl font-bold text-white">
-                              {agent.agentIcon || '🤖'} {agent.agentName}
+                            <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                              {getAgentIcon(agent.agentId)}
+                              <span>{agent.agentName}</span>
                             </h3>
                           </div>
                         </div>
@@ -1009,7 +1054,11 @@ ${oldDescription}
                           {agent.sections?.known?.items?.length > 0 && (
                             <div>
                               <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-2">
-                                <span>{agent.sections.known.title || '✅ ما أعرفه'} ({agent.sections.known.items.length})</span>
+                                <span>({agent.sections.known.items.length})</span>
+                                <span className="flex items-center gap-1.5">
+                                  <span>{cleanTitle(agent.sections.known.title) || 'ما أعرفه'}</span>
+                                  <CheckCircle2 size={14} className="text-emerald-400" />
+                                </span>
                               </div>
                               <ul className="space-y-2 text-right">
                                 {agent.sections.known.items.map((item: string, i: number) => (
@@ -1025,7 +1074,11 @@ ${oldDescription}
                           {agent.sections?.unknown?.items?.length > 0 && (
                             <div className="pt-4 border-t border-white/5">
                               <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-2">
-                                <span>{agent.sections.unknown.title || '❓ ما لا أعرفه'} ({agent.sections.unknown.items.length})</span>
+                                <span>({agent.sections.unknown.items.length})</span>
+                                <span className="flex items-center gap-1.5">
+                                  <span>{cleanTitle(agent.sections.unknown.title) || 'ما لا أعرفه'}</span>
+                                  <HelpCircle size={14} className="text-amber-400" />
+                                </span>
                               </div>
                               <ul className="space-y-2 text-right">
                                 {agent.sections.unknown.items.map((item: string, i: number) => (
@@ -1040,8 +1093,9 @@ ${oldDescription}
 
                           {agent.sections?.analysis?.content && (
                             <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2">
-                                {agent.sections.analysis.title || '💡 التحليل'}
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-1.5">
+                                <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
+                                <Sparkles size={14} className="text-cyan-400" />
                               </div>
                               <p className="text-xs md:text-sm text-zinc-400 leading-relaxed bg-[#080808] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
                                 {agent.sections.analysis.content}
@@ -1051,8 +1105,9 @@ ${oldDescription}
 
                           {agent.sections?.recommendation?.content && (
                             <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2">
-                                {agent.sections.recommendation.title || '🎯 التوصية'}
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-1.5">
+                                <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
+                                <Zap size={14} className="text-purple-400" />
                               </div>
                               <p className="text-xs md:text-sm text-white font-bold leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5">
                                 {agent.sections.recommendation.content}
@@ -1063,7 +1118,10 @@ ${oldDescription}
 
                         {agent.sources?.length > 0 && (
                           <div className="pt-4 border-t border-white/5">
-                            <div className="text-xs text-zinc-500 mb-2">📚 المصادر والمراجع:</div>
+                            <div className="text-xs text-zinc-500 mb-2 flex items-center justify-end gap-1.5">
+                              <span>المصادر والمراجع</span>
+                              <HelpCircle size={12} />
+                            </div>
                             <div className="flex flex-row-reverse flex-wrap gap-2">
                               {agent.sources.map((src: any, sIdx: number) => {
                                 const tierColors: Record<string, string> = {
@@ -1075,9 +1133,10 @@ ${oldDescription}
                                 return (
                                   <span
                                     key={sIdx}
-                                    className={`px-3 py-1 rounded-full text-[10px] font-bold border ${badgeClass}`}
+                                    className={`px-3 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 ${badgeClass}`}
                                   >
-                                    {src.tier === 'A' ? '🟢' : src.tier === 'B' ? '🟡' : '🔴'} {src.name}
+                                    <span className={`w-1.5 h-1.5 rounded-full ${src.tier === 'A' ? 'bg-emerald-400' : src.tier === 'B' ? 'bg-amber-400' : 'bg-rose-400'}`} />
+                                    <span>{src.name}</span>
                                   </span>
                                 );
                               })}
@@ -1091,8 +1150,9 @@ ${oldDescription}
 
                 {/* Synthesis Section */}
                 <div className="glass rounded-[2rem] p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
-                  <h2 className="text-2xl font-black text-white mb-6 flex items-center justify-end gap-2">
-                    <span>{synthesis.title || '🧠 التوليفة الاستراتيجية'}</span>
+                  <h2 className="text-2xl font-black text-white mb-6 flex items-center justify-end gap-2.5">
+                    <BrainCircuit size={22} className="text-cyan-400 shrink-0" />
+                    <span>{cleanTitle(synthesis.title) || 'التوليفة الاستراتيجية'}</span>
                   </h2>
                   <p className="text-zinc-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap mb-8 bg-black/30 p-6 rounded-2xl border border-white/5">
                     {synthesis.summary || synthesis.content}
@@ -1162,8 +1222,9 @@ ${oldDescription}
 
                 {/* Footer disclaimer */}
                 <div className="glass rounded-2xl p-5 border border-rose-500/20 bg-[#150a0b] text-center mb-12 flex items-center justify-center gap-2">
+                  <AlertCircle size={14} className="shrink-0 text-rose-400" />
                   <span className="text-rose-400 font-bold text-xs md:text-sm leading-relaxed">
-                    ⚠️ {disclaimer}
+                    {disclaimer}
                   </span>
                 </div>
 

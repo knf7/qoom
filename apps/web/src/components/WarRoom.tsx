@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Network, Shield, Cpu, Target, ShieldAlert, CheckCircle2, TrendingUp, Sparkles, RefreshCw, ChevronLeft, ChevronRight, Home, HelpCircle } from 'lucide-react';
+import { Activity, Network, Shield, Cpu, Target, ShieldAlert, CheckCircle2, TrendingUp, Sparkles, RefreshCw, ChevronLeft, ChevronRight, Home, HelpCircle, MessageSquare } from 'lucide-react';
 import { useI18n } from '../utils/i18n';
 import DOMPurify from 'dompurify';
 import { sanitizeUILanguage } from '../utils/languageSanitizer';
@@ -342,7 +342,8 @@ export default function WarRoom({ scan, onReplay, onBackToDashboard }: WarRoomPr
       <div className="bento-panel p-6 md:p-8 select-none relative overflow-hidden">
         <div className="absolute inset-0 neon-grid-scan opacity-10 pointer-events-none" />
         <h2 className="text-lg font-bold font-display text-slate-100 flex items-center gap-2 mb-2">
-          🗣️ {lang === 'ar' ? 'جلسة النقاش المشتركة للخبراء' : 'Expert Panel Debate Board'}
+          <MessageSquare className="text-cyan-400 shrink-0" size={18} />
+          <span>{lang === 'ar' ? 'جلسة النقاش المشتركة للخبراء' : 'Expert Panel Debate Board'}</span>
         </h2>
         <p className="text-xs text-slate-400 font-sans mb-6">
           {lang === 'ar' ? 'اختر أحد أركان فكرتك لترى كيف يتفاعل ويتناقش الخبراء حولها معاً مباشرة!' : 'Select any core pillar of your pitch to view direct interactive panel discussion loops!'}
@@ -351,22 +352,24 @@ export default function WarRoom({ scan, onReplay, onBackToDashboard }: WarRoomPr
         {/* Pillar toggle deck buttons */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { id: 'problem', labelAr: '🎯 المشكلة الجوهرية', labelEn: '🎯 Core Market Problem' },
-            { id: 'user', labelAr: '👥 الجمهور المستهدف', labelEn: '👥 Target User Fit' },
-            { id: 'model', labelAr: '🏗️ النموذج الفني والمالي', labelEn: '🏗️ Technical & Financial Model' }
+            { id: 'problem', labelAr: 'المشكلة الجوهرية', labelEn: 'Core Market Problem', Icon: Target },
+            { id: 'user', labelAr: 'الجمهور المستهدف', labelEn: 'Target User Fit', Icon: HelpCircle },
+            { id: 'model', labelAr: 'النموذج الفني والمالي', labelEn: 'Technical & Financial Model', Icon: Cpu }
           ].map((pill) => {
             const isSelected = activePillar === pill.id;
+            const PillIcon = pill.Icon;
             return (
               <button
                 key={pill.id}
                 onClick={() => setActivePillar(pill.id as any)}
-                className={`py-3 px-2 rounded-2xl border text-xs font-bold transition-all ${
+                className={`py-3 px-2 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   isSelected 
                     ? 'bg-primaryGlow/10 border-primaryGlow text-primaryGlow shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
                     : 'bg-slate-900/60 border-cardBorder/30 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {lang === 'ar' ? pill.labelAr : pill.labelEn}
+                <PillIcon size={14} className="shrink-0" />
+                <span>{lang === 'ar' ? pill.labelAr : pill.labelEn}</span>
               </button>
             );
           })}
@@ -441,7 +444,8 @@ export default function WarRoom({ scan, onReplay, onBackToDashboard }: WarRoomPr
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 border-b border-cardBorder/30 pb-4">
           <div className="text-left">
             <h2 className="text-lg font-bold font-display text-slate-100 flex items-center gap-2">
-              👾 {lang === 'ar' ? 'غرفة عمليات تقييم المشروع' : 'Venture Evaluation War Room'}
+              <Cpu className="text-cyan-400 shrink-0" size={18} />
+              <span>{lang === 'ar' ? 'غرفة عمليات تقييم المشروع' : 'Venture Evaluation War Room'}</span>
             </h2>
             <p className="text-xs text-slate-400 font-sans mt-0.5">
               {lang === 'ar' ? 'انقر على بطاقة أي خبير لتسمعه وهو يلقي تقييمه المالي والتكتيكي الدقيق فورا!' : 'Click any companion character to spotlight their precise strategic evaluation dossiers.'}
