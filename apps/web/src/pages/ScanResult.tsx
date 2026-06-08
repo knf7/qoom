@@ -179,6 +179,14 @@ ${oldDescription}
       setScan(data);
       setLoading(false);
 
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('scan_result_viewed', {
+          scanId,
+          verdict: data.verdict,
+          score: data.score
+        });
+      }
+
       if (data.status === 'PENDING' || data.status === 'PROCESSING') {
         initializeSwarm();
         initializeWebSocketStream();
@@ -1147,6 +1155,93 @@ ${oldDescription}
                     );
                   })}
                 </div>
+
+                {/* Scarcity & Existence Audit Section */}
+                {scan?.payload?.realityEvidence && (
+                  <div className="glass rounded-[2rem] p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
+                    {/* Top edge neon accent */}
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent"></div>
+
+                    <h2 className="text-2xl font-black text-white mb-6 flex items-center justify-end gap-2.5">
+                      <Compass size={22} className="text-cyan-400 shrink-0" />
+                      <span>تحليل ندرة الفكرة والتحقق من الوجود في السوق</span>
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      {/* Authenticity / Novelty Gauge */}
+                      <div className="bg-black/30 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
+                        <span className="text-[10px] text-zinc-500 font-mono tracking-wider mb-2 uppercase">درجة الابتكار والأصالة</span>
+                        <div className="text-3xl font-extrabold text-emerald-400 glow-text-emerald num-ltr">
+                          {scan.payload.realityEvidence.novelty_score ?? 70}%
+                        </div>
+                        <span className="text-[10px] text-zinc-400 mt-1">مدى تميز وجدة الفكرة</span>
+                      </div>
+
+                      {/* Saturation / Market Existence Gauge */}
+                      <div className="bg-black/30 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
+                        <span className="text-[10px] text-zinc-500 font-mono tracking-wider mb-2 uppercase">مستوى تشبع وتكرار السوق</span>
+                        <div className="text-3xl font-extrabold text-amber-400 glow-text-amber num-ltr">
+                          {scan.payload.realityEvidence.saturation_score ?? 30}%
+                        </div>
+                        <span className="text-[10px] text-zinc-400 mt-1">كثافة المنافسين والمشاريع المشابهة</span>
+                      </div>
+
+                      {/* Verdict Indicator */}
+                      <div className="bg-black/30 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
+                        <span className="text-[10px] text-zinc-500 font-mono tracking-wider mb-2 uppercase">قرار أصالة الفكرة</span>
+                        <div className={`text-base font-bold px-3 py-1.5 rounded-full border mt-1 ${
+                          scan.payload.auditResult?.verdict === 'AUTHENTIC' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          scan.payload.auditResult?.verdict === 'CLONE' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>
+                          {scan.payload.auditResult?.verdict === 'AUTHENTIC' ? 'فكرة أصيلة ومبتكرة' :
+                           scan.payload.auditResult?.verdict === 'CLONE' ? 'مشروع مكرر بالكامل' :
+                           scan.payload.auditResult?.verdict === 'WRAPPER_STARTUP' ? 'غلاف تقني بسيط (Wrapper)' :
+                           scan.payload.auditResult?.verdict === 'BUZZWORD_ABUSE' ? 'حشو مصطلحات تقنية' :
+                           'تحتاج لإعادة دراسة'}
+                        </div>
+                        <span className="text-[9px] text-zinc-500 mt-2 text-center leading-relaxed">
+                          {scan.payload.auditResult?.audit_note || 'تمت مقارنة الفكرة بالإنترنت بنجاح.'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Similar Starts & Repos */}
+                    {((scan.payload.auditResult?.clone_indicators?.length > 0) || (scan.payload.realityEvidence?.top_competitors?.length > 0)) && (
+                      <div className="bg-rose-950/10 border border-rose-500/10 p-6 rounded-2xl mb-6">
+                        <div className="text-xs text-rose-400 font-bold mb-3 flex items-center justify-end gap-1.5">
+                          <span>المشاريع أو المصادر المشابهة التي تم العثور عليها بالإنترنت:</span>
+                          <AlertTriangle size={14} />
+                        </div>
+                        <div className="flex flex-row-reverse flex-wrap gap-2">
+                          {[...(scan.payload.auditResult?.clone_indicators || []), ...(scan.payload.realityEvidence?.top_competitors || [])]
+                            .filter((item, index, self) => self.indexOf(item) === index && item)
+                            .map((name: string, idx: number) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/5 text-rose-400 border border-rose-500/10"
+                              >
+                                {name}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Differentiation Analysis */}
+                    {scan.payload.auditResult?.differentiation_analysis && (
+                      <div className="bg-black/30 p-6 rounded-2xl border border-white/5">
+                        <div className="text-xs text-zinc-400 font-bold mb-3 flex items-center justify-end gap-1.5">
+                          <span>تحليل التميز والندرة للفكرة:</span>
+                          <Sparkles size={14} className="text-cyan-400" />
+                        </div>
+                        <p className="text-xs md:text-sm text-zinc-300 leading-relaxed">
+                          {scan.payload.auditResult.differentiation_analysis}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Synthesis Section */}
                 <div className="glass rounded-[2rem] p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">

@@ -171,6 +171,9 @@ export default function TopNav() {
                       </div>
                       <button 
                         onClick={() => {
+                          if (typeof window !== 'undefined' && (window as any).posthog) {
+                            (window as any).posthog.capture('stripe_checkout_clicked');
+                          }
                           setIsProfileOpen(false);
                           navigate('/dashboard'); // dashboard can host Stripe payments trigger
                         }}
@@ -179,6 +182,14 @@ export default function TopNav() {
                         <CreditCard size={12} />
                         شراء رصيد تحليلات (Stripe)
                       </button>
+                      <div className="text-center pt-2 border-t border-white/5">
+                        <a 
+                          href="mailto:support@qoom-app.com" 
+                          className="text-[9px] text-zinc-500 hover:text-cyan-400 transition-colors pointer-events-auto"
+                        >
+                          لطلب زيادة الرصيد أو الدعم: support@qoom-app.com
+                        </a>
+                      </div>
                     </div>
 
                     {/* Navigation Links */}

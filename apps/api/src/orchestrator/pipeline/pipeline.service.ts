@@ -5,6 +5,8 @@ import { EventBusService } from '../events/event-bus.service';
 import { PrismaService } from '../../database/prisma.service';
 import { PROBLEM_INFERENCE_PROMPT } from '@qoom/prompts';
 import { CanaryTokenManager } from '@qoom/security';
+import { RealityIntelligenceService } from '../../reality/reality-intelligence.service';
+import { RealityAuditorAgent } from '../../agents/reality-auditor.agent';
 
 @Injectable()
 export class PipelineService {
@@ -14,7 +16,9 @@ export class PipelineService {
     private readonly executionEngine: ParallelExecutionEngine,
     private readonly gemini: GeminiService,
     private readonly eventBus: EventBusService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly realityIntelligenceService: RealityIntelligenceService,
+    private readonly realityAuditorAgent: RealityAuditorAgent
   ) {}
 
   async executeScan(
@@ -154,7 +158,10 @@ ${projectDescription}
       return '🤖';
     };
 
-    const results = await Promise.allSettled(
+    let realityEvidence: any = null;
+    let auditResult: any = null;
+
+    const agentsPromise = Promise.allSettled(
       agents.map(async (agentName) => {
         let val: any;
         if (agentName === 'MarketAgent') {
@@ -186,6 +193,30 @@ ${projectDescription}
         return val;
       })
     );
+
+    const realityPromise = (async () => {
+      try {
+        this.logger.log(`[RIL] Gathering reality evidence for scan ${scanId}`);
+        const evidence = await this.realityIntelligenceService.gatherEvidence(projectDescription, scanId);
+        
+        this.logger.log(`[RIL] Running reality audit against gathered evidence`);
+        const audit = await this.realityAuditorAgent.audit(projectDescription, evidence);
+        return { evidence, audit };
+      } catch (err: any) {
+        this.logger.error(`Failed to run reality intelligence / audit`, err);
+        return null;
+      }
+    })();
+
+    const [results, realityOutcome] = await Promise.all([
+      agentsPromise,
+      realityPromise
+    ]);
+
+    if (realityOutcome) {
+      realityEvidence = realityOutcome.evidence;
+      auditResult = realityOutcome.audit;
+    }
 
     // Map outcomes
     const agentResults: any = {};
@@ -396,6 +427,8 @@ ${projectDescription}
       },
       problemInference,
       refinedIdea,
+      realityEvidence,
+      auditResult,
       executiveSummary: {
         verdict,
         verdictColor,
@@ -441,8 +474,8 @@ ${projectDescription}
       problemInference,
       refinedIdea,
       iraResult: null,
-      realityEvidence: null,
-      auditResult: null,
+      realityEvidence,
+      auditResult,
     };
   }
 

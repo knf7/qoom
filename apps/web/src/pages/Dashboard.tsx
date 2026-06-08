@@ -111,6 +111,14 @@ export default function Dashboard() {
         method: 'POST',
         data: { projectId },
       });
+
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture('scan_initiated', {
+          projectId,
+          scanId: scanData.scanId
+        });
+      }
+
       if (scanData.scanId) {
         navigate(`/scan/${scanData.scanId}`);
       } else {

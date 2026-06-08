@@ -163,8 +163,8 @@ export class QueueService implements OnModuleInit {
         missing_data: [],
         missing_elements: [],
         questions: [],
-        realityEvidence: null,
-        auditResult: null,
+        realityEvidence: orchestratorResult.realityEvidence || null,
+        auditResult: orchestratorResult.auditResult || null,
         iraResult: null,
       }
     };

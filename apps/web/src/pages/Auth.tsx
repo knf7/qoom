@@ -49,6 +49,14 @@ export default function Auth() {
 
       // Save user session in Zustand state
       setAuth(data.user, data.accessToken);
+
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        (window as any).posthog.capture(isLogin ? 'user_logged_in' : 'user_signed_up', {
+          email: data.user.email,
+          name: data.user.name
+        });
+      }
+
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || t('auth.error'));
