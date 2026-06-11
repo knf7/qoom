@@ -1,16 +1,69 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, User, BarChart3, Settings, CreditCard, ChevronDown } from 'lucide-react';
+import { LogOut, User, BarChart3, Settings, CreditCard, ChevronDown, Mail, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
+import { apiClient } from '../utils/apiClient';
 
 export default function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useStore();
+  const { user, logout, lang } = useStore();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [supportEmail, setSupportEmail] = useState('');
+  const [supportMessage, setSupportMessage] = useState('أرغب في زيادة رصيد التحليلات الخاص بي بمقدار 10 نقاط.');
+  const [isSending, setIsSending] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.email) {
+      setSupportEmail(user.email);
+    }
+  }, [user]);
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+    setSendSuccess(null);
+    setSendError(null);
+
+    if (typeof window !== 'undefined' && (window as any).posthog) {
+      (window as any).posthog.capture('support_request_submitted', {
+        email: supportEmail,
+        message: supportMessage,
+      });
+    }
+
+    try {
+      const data = await apiClient('/support/request', {
+        method: 'POST',
+        data: {
+          email: supportEmail,
+          message: supportMessage,
+        },
+      });
+
+      if (data.success) {
+        setSendSuccess('تم إرسال طلبك بنجاح! سنقوم بمراجعته وزيادة رصيدك قريباً.');
+        setSupportMessage('');
+        setTimeout(() => {
+          setIsSupportOpen(false);
+          setSendSuccess(null);
+        }, 3000);
+      } else {
+        setSendError('فشل إرسال الطلب. يرجى المحاولة مرة أخرى.');
+      }
+    } catch (err: any) {
+      setSendError(err.message || 'حدث خطأ أثناء الاتصال بالخادم.');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -29,7 +82,7 @@ export default function TopNav() {
   if (location.pathname === '/auth') return null;
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 py-4 px-6 select-none pointer-events-none">
+    <nav className="fixed top-0 left-0 w-full z-50 py-4 px-6 select-none pointer-events-none" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto flex items-center justify-between w-full pointer-events-auto">
         
         {/* Right Side (placed first in HTML to render on the right in RTL): Logo & Command */}
@@ -183,12 +236,16 @@ export default function TopNav() {
                         شراء رصيد تحليلات (Stripe)
                       </button>
                       <div className="text-center pt-2 border-t border-white/5">
-                        <a 
-                          href="mailto:support@qoom-app.com" 
-                          className="text-[9px] text-zinc-500 hover:text-cyan-400 transition-colors pointer-events-auto"
+                        <button 
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            setIsSupportOpen(true);
+                          }}
+                          className="w-full text-center text-[10px] text-cyan-400/80 hover:text-cyan-300 transition-colors pointer-events-auto font-bold flex items-center justify-center gap-1.5 py-1"
                         >
-                          لطلب زيادة الرصيد أو الدعم: support@qoom-app.com
-                        </a>
+                          <Mail size={10} />
+                          طلب زيادة رصيد مجاني / دعم فني
+                        </button>
                       </div>
                     </div>
 
@@ -268,6 +325,95 @@ export default function TopNav() {
         </div>
         
       </div>
+
+      {/* Support / Request Credits Modal */}
+      <AnimatePresence>
+        {isSupportOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm pointer-events-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="glass max-w-md w-full rounded-[2rem] border border-white/10 bg-[#111] overflow-hidden shadow-[0_10px_45px_rgba(0,0,0,0.8)] relative text-right p-6 md:p-8"
+              dir="rtl"
+            >
+              {/* Cyan top accent */}
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent"></div>
+
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsSupportOpen(false)}
+                className="absolute top-4 left-4 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 mb-3 border border-cyan-500/20">
+                  <Mail size={22} />
+                </div>
+                <h3 className="text-lg font-bold text-white">طلب زيادة رصيد / دعم فني</h3>
+                <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                  أرسل طلبك وسنقوم بالتواصل معك وزيادة رصيدك فوراً في غضون دقائق.
+                </p>
+              </div>
+
+              {sendSuccess && (
+                <div className="p-4 mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs text-center font-bold">
+                  {sendSuccess}
+                </div>
+              )}
+
+              {sendError && (
+                <div className="p-4 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-center font-bold">
+                  {sendError}
+                </div>
+              )}
+
+              <form onSubmit={handleSupportSubmit} className="space-y-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-400 font-mono">البريد الإلكتروني للرد</label>
+                  <input
+                    type="email"
+                    required
+                    value={supportEmail}
+                    onChange={(e) => setSupportEmail(e.target.value)}
+                    placeholder="your-email@domain.com"
+                    className="glass-input w-full pl-4 pr-4 bg-zinc-900/80 text-right"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-zinc-400 font-mono">تفاصيل الطلب أو الرسالة</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    placeholder="اكتب طلبك هنا..."
+                    className="glass-input w-full pl-4 pr-4 py-3 bg-zinc-900/80 text-right resize-none text-xs md:text-sm leading-relaxed"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 border border-cyan-500/30 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 disabled:opacity-40"
+                >
+                  {isSending ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-cyan-400/30 border-t-cyan-400 animate-spin"></div>
+                  ) : (
+                    <>
+                      <Send size={12} className="rotate-180" />
+                      <span>إرسال الطلب</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

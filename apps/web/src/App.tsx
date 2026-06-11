@@ -25,7 +25,7 @@ export default function App() {
       <div className="noise-overlay"></div>
 
       {/* Main Layout wrapper */}
-      <div className="relative min-h-screen text-foreground flex flex-col bg-[#0a0a0a]">
+      <div className={`relative min-h-screen text-foreground flex flex-col bg-[#0a0a0a] ${lang === 'ar' ? 'text-right' : 'text-left'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         {/* Top Navigation */}
         <TopNav />
 

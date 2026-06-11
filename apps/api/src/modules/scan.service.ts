@@ -391,4 +391,33 @@ export class ScanService {
       createdAt: scan.createdAt,
     };
   }
+
+  async submitSupportRequest(userId: string, email: string, message: string) {
+    const adminEmail = process.env.ADMIN_SUPPORT_EMAIL || 'support@qoom-app.com';
+    this.logger.log(`[Support] User ${userId} submitting support request to ${adminEmail}`);
+
+    try {
+      const response = await fetch(`https://formsubmit.co/ajax/${adminEmail}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          Email: email,
+          Message: message,
+          _subject: 'طلب جديد من منصة قوم - رصيد أو استفسار',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`FormSubmit responded with status ${response.status}`);
+      }
+
+      return { success: true, message: 'Support request submitted successfully.' };
+    } catch (err: any) {
+      this.logger.error(`Failed to submit support request: ${err.message}`);
+      return { success: false, message: 'Failed to deliver support email.' };
+    }
+  }
 }

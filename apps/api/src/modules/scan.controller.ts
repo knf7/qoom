@@ -87,4 +87,14 @@ export class ScanController {
   async getPassport(@Param('id') scanId: string) {
     return this.scanService.getPassportCredentials(scanId);
   }
+
+  @Post('support/request')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async submitSupportRequest(
+    @CurrentUser() user: any,
+    @Body() body: { email: string; message: string }
+  ) {
+    return this.scanService.submitSupportRequest(user.id, body.email, body.message);
+  }
 }
