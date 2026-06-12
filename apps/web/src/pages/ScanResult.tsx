@@ -719,28 +719,41 @@ ${oldDescription}
                  return pl.agents;
                }
                const results = scanData?.results;
-               if (results && typeof results === 'object') {
+               if (results && Array.isArray(results)) {
                  const list: any[] = [];
                  const agentKeys = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent'];
                  for (const key of agentKeys) {
-                   const agentData = results[key];
+                   const agentData = results.find((r: any) => r.agentType === key);
                    if (agentData) {
+                     let parsedAnalysis: any = {};
+                     try {
+                       parsedAnalysis = agentData.analysis ? JSON.parse(agentData.analysis) : {};
+                     } catch (e) {}
+
+                     const agentTitleMap: Record<string, string> = {
+                       MarketAgent: 'تحليل السوق والطلب',
+                       CompetitionAgent: 'المنافسة والميزة التنافسية',
+                       MonetizationAgent: 'الجدوى المالية والأرباح',
+                       FeasibilityAgent: 'الجدوى التقنية والتنفيذ',
+                       RiskAgent: 'المخاطر والتحديات'
+                     };
+
                      list.push({
                        agentId: key,
-                       agentName: key,
+                       agentName: agentTitleMap[key] || key,
                        status: agentData.status || 'FULL',
                        statusLabel: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'تحليل كامل' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'فشل التحليل' : 'تحليل جزئي',
                        statusColor: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'emerald' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'rose' : 'amber',
-                       confidence: agentData.confidence || 80,
-                       confidenceLabel: agentData.confidence >= 70 ? 'عالية' : agentData.confidence >= 40 ? 'متوسطة' : 'منخفضة',
+                       confidence: parsedAnalysis.confidence || 80,
+                       confidenceLabel: (parsedAnalysis.confidence || 80) >= 70 ? 'عالية' : (parsedAnalysis.confidence || 80) >= 40 ? 'متوسطة' : 'منخفضة',
                        score: agentData.score !== undefined ? agentData.score : null,
-                       sections: agentData.sections || {
-                         known: { title: '✅ ما أعرفه', items: agentData.dimensions?.[0]?.evidence || [] },
-                         unknown: { title: '❓ ما لا أعرفه', items: [] },
-                         analysis: { title: '💡 التحليل', content: agentData.recommendation || '' },
-                         recommendation: { title: '🎯 التوصية', content: agentData.recommendation || '' }
+                       sections: {
+                         known: { title: 'ما أعرفه', items: parsedAnalysis.sections?.known?.items || parsedAnalysis.dimensions?.[0]?.evidence || [] },
+                         unknown: { title: 'ما لا أعرفه', items: [] },
+                         analysis: { title: 'التحليل', content: agentData.recommendation || parsedAnalysis.sections?.analysis?.content || '' },
+                         recommendation: { title: 'التوصية', content: agentData.recommendation || parsedAnalysis.sections?.recommendation?.content || '' }
                        },
-                       sources: agentData.sources || []
+                       sources: parsedAnalysis.sources || []
                      });
                    }
                  }
