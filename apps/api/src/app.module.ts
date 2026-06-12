@@ -14,6 +14,7 @@ import { ScanModule } from './modules/scan.module';
 import { RateLimiterMiddleware } from './security/middleware/rate-limiter.middleware';
 import { EventsModule } from './orchestrator/events/events.module';
 import { CopilotModule } from './modules/copilot/copilot.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CopilotModule } from './modules/copilot/copilot.module';
     ScanModule,
     EventsModule,
     CopilotModule,
+    BillingModule,
   ],
 })
 export class AppModule implements NestModule {

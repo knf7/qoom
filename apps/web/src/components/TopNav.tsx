@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, User, BarChart3, Settings, CreditCard, ChevronDown, Mail, X, Send } from 'lucide-react';
+import { LogOut, User, BarChart3, Settings, CreditCard, ChevronDown, Mail, X, Send, ShieldCheck, Loader2, Sparkles, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { apiClient } from '../utils/apiClient';
@@ -19,6 +19,30 @@ export default function TopNav() {
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+
+  const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<'basic' | 'premium' | 'enterprise'>('premium');
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  const handlePurchaseInit = async () => {
+    setIsCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const data = await apiClient('/billing/create-checkout-session', {
+        method: 'POST',
+        data: { packageId: selectedPackage },
+      });
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('فشل إنشاء جلسة الدفع.');
+      }
+    } catch (err: any) {
+      setCheckoutError(err.message || 'حدث خطأ أثناء الاتصال بخادم الدفع.');
+      setIsCheckoutLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.email) {
@@ -228,7 +252,7 @@ export default function TopNav() {
                             (window as any).posthog.capture('stripe_checkout_clicked');
                           }
                           setIsProfileOpen(false);
-                          navigate('/dashboard'); // dashboard can host Stripe payments trigger
+                          setIsPurchaseOpen(true);
                         }}
                         className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-black rounded-lg text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5"
                       >
@@ -410,6 +434,108 @@ export default function TopNav() {
                   )}
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isPurchaseOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm pointer-events-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="glass max-w-lg w-full rounded-[2.5rem] border border-white/10 bg-[#111] overflow-hidden shadow-[0_10px_45px_rgba(0,0,0,0.8)] relative text-right p-6 md:p-8"
+              dir="rtl"
+            >
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent"></div>
+
+              <button 
+                onClick={() => {
+                  setIsPurchaseOpen(false);
+                  setCheckoutError(null);
+                }}
+                className="absolute top-4 left-4 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 mb-3 border border-cyan-500/20">
+                  <CreditCard size={22} />
+                </div>
+                <h3 className="text-lg font-bold text-white">اختر باقة تحليلات قُوم</h3>
+                <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                  احصل على رصيد إضافي لإجراء تحليلات فحص متكاملة لأفكارك ومشروعاتك.
+                </p>
+              </div>
+
+              {checkoutError && (
+                <div className="p-4 mb-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs text-center font-bold">
+                  {checkoutError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {[
+                  { id: 'basic', name: 'الباقة الأساسية', credits: 5, price: 10, desc: '5 فحوصات' },
+                  { id: 'premium', name: 'المتقدمة', credits: 15, price: 25, desc: '15 فحصاً', popular: true },
+                  { id: 'enterprise', name: 'الاحترافية', credits: 50, price: 50, desc: '50 فحصاً' },
+                ].map((pkg) => (
+                  <button
+                    key={pkg.id}
+                    type="button"
+                    onClick={() => setSelectedPackage(pkg.id as any)}
+                    className={`p-4 rounded-2xl border text-center transition-all relative flex flex-col items-center justify-between ${
+                      selectedPackage === pkg.id
+                        ? 'border-cyan-500 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                        : 'border-white/5 bg-black/40 hover:border-white/20'
+                    }`}
+                  >
+                    {pkg.popular && (
+                      <span className="absolute -top-2 px-2 py-0.5 bg-cyan-500 text-black text-[8px] font-black rounded-full uppercase tracking-wider scale-90">
+                        موصى بها
+                      </span>
+                    )}
+                    <span className="text-[10px] text-zinc-400 font-bold block mb-1">{pkg.name}</span>
+                    <span className="text-2xl font-black text-white font-mono block num-ltr my-1">${pkg.price}</span>
+                    <span className="text-[9px] text-cyan-400/80 font-semibold block">{pkg.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-black/50 p-4 rounded-2xl border border-white/5 space-y-2.5 mb-6 text-xs text-zinc-400">
+                <div className="flex items-center gap-2 text-[10px] text-zinc-500 uppercase tracking-widest font-mono">
+                  <Sparkles size={12} className="text-cyan-400" />
+                  <span>الميزات المفعلة في الباقة</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={12} className="text-cyan-500 shrink-0" />
+                  <span>تحديث رصيد فوري وآمن 100%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check size={12} className="text-cyan-500 shrink-0" />
+                  <span>إطلاق فحص السرب الاستراتيجي (5 وكلاء متوازيين)</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handlePurchaseInit}
+                disabled={isCheckoutLoading}
+                className="w-full py-3.5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+              >
+                {isCheckoutLoading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>جاري تحضير بوابة الدفع الآمنة...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck size={14} />
+                    <span>الانتقال للدفع الآمن (Stripe)</span>
+                  </>
+                )}
+              </button>
             </motion.div>
           </div>
         )}

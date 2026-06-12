@@ -8,6 +8,9 @@ import ScanResult from './pages/ScanResult';
 import Passport from './pages/Passport';
 import Analytics from './pages/Analytics';
 import Copilot from './pages/Copilot';
+import CheckoutSimulation from './pages/CheckoutSimulation';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 import { useI18n } from './utils/i18n';
 
 export default function App() {
@@ -41,6 +44,9 @@ export default function App() {
               <Route path="/passport/:id" element={<Passport />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/copilot" element={<Copilot />} />
+              <Route path="/checkout-simulation" element={<CheckoutSimulation />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
             </Routes>
           </main>
 

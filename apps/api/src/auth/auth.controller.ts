@@ -45,4 +45,16 @@ export class AuthController {
   async getProfile(@CurrentUser() user: any) {
     return this.authService.validateUserSession(user.id);
   }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: any) {
+    return this.authService.resetPassword(body);
+  }
 }

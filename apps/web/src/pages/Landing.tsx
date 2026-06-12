@@ -26,7 +26,7 @@ export default function Landing() {
 
   React.useEffect(() => {
     if (user && token) {
-      navigate('/dashboard', { replace: true });
+      navigate('/copilot', { replace: true });
     }
   }, [user, token, navigate]);
   

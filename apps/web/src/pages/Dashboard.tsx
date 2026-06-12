@@ -150,7 +150,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-zinc-950 text-white">
+    <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a] text-white">
       {/* Hero Gradient Background */}
       <div className="hero-gradient absolute inset-0 pointer-events-none" />
       <div className="grid-bg absolute inset-0 pointer-events-none opacity-40" />

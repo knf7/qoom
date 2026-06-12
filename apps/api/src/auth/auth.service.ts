@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private resetCodes = new Map<string, { code: string; expiresAt: Date }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -165,5 +166,55 @@ export class AuthService {
         details: JSON.stringify({ email, reason }),
       },
     });
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string; devCode?: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      return { message: 'إذا كان البريد مسجلاً لدينا، فقد تم إرسال رمز التحقق.' };
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    this.resetCodes.set(email.toLowerCase(), { code, expiresAt });
+    this.logger.log(`Password reset code generated for ${email}: ${code}`);
+
+    return {
+      message: 'تم إرسال رمز التحقق بنجاح.',
+      devCode: code,
+    };
+  }
+
+  async resetPassword(input: any): Promise<{ success: boolean; message: string }> {
+    const email = input.email.toLowerCase();
+    const record = this.resetCodes.get(email);
+
+    if (!record) {
+      throw new UnauthorizedException('رمز التحقق غير صحيح أو غير متوفر.');
+    }
+
+    if (record.code !== input.code) {
+      throw new UnauthorizedException('رمز التحقق غير صحيح.');
+    }
+
+    if (new Date() > record.expiresAt) {
+      this.resetCodes.delete(email);
+      throw new UnauthorizedException('انتهت صلاحية رمز التحقق.');
+    }
+
+    const hashedPassword = await bcrypt.hash(input.newPassword, 12);
+
+    await this.prisma.user.update({
+      where: { email: input.email },
+      data: { password: hashedPassword },
+    });
+
+    this.resetCodes.delete(email);
+    this.logger.log(`Password reset successfully for user: ${email}`);
+
+    return { success: true, message: 'تم إعادة تعيين كلمة المرور بنجاح.' };
   }
 }
