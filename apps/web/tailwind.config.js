@@ -53,8 +53,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"Noto Sans Arabic"', 'Inter', 'sans-serif'],
-        display: ['"Noto Sans Arabic"', 'Inter', 'sans-serif'],
+        sans: ['Cairo', 'Inter', 'sans-serif'],
+        display: ['Cairo', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {

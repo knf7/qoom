@@ -713,7 +713,44 @@ ${oldDescription}
               oneLiner: scan?.summary || 'الفكرة واعدة لكنها تحتاج دراسة سوقية وتقنية أعمق.',
               keyInsight: 'التميز المحتمل في الخدمة المقترحة، ولكن المخاطر التشغيلية تتطلب مراجعة.'
             };
-            const agentsList = payload.agents || [];
+             const getAgentsListFallback = (scanData: any) => {
+               const pl = scanData?.payload || {};
+               if (pl.agents && pl.agents.length > 0) {
+                 return pl.agents;
+               }
+               const results = scanData?.results;
+               if (results && typeof results === 'object') {
+                 const list: any[] = [];
+                 const agentKeys = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent'];
+                 for (const key of agentKeys) {
+                   const agentData = results[key];
+                   if (agentData) {
+                     list.push({
+                       agentId: key,
+                       agentName: key,
+                       status: agentData.status || 'FULL',
+                       statusLabel: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'تحليل كامل' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'فشل التحليل' : 'تحليل جزئي',
+                       statusColor: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'emerald' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'rose' : 'amber',
+                       confidence: agentData.confidence || 80,
+                       confidenceLabel: agentData.confidence >= 70 ? 'عالية' : agentData.confidence >= 40 ? 'متوسطة' : 'منخفضة',
+                       score: agentData.score !== undefined ? agentData.score : null,
+                       sections: agentData.sections || {
+                         known: { title: '✅ ما أعرفه', items: agentData.dimensions?.[0]?.evidence || [] },
+                         unknown: { title: '❓ ما لا أعرفه', items: [] },
+                         analysis: { title: '💡 التحليل', content: agentData.recommendation || '' },
+                         recommendation: { title: '🎯 التوصية', content: agentData.recommendation || '' }
+                       },
+                       sources: agentData.sources || []
+                     });
+                   }
+                 }
+                 if (list.length > 0) {
+                   return list;
+                 }
+               }
+               return [];
+             };
+             const agentsList = getAgentsListFallback(scan);
             const synthesis = payload.synthesis || {
               title: 'التوليفة الاستراتيجية',
               summary: scan?.recommendation || 'بناءً على آراء الوكلاء...',
@@ -732,16 +769,16 @@ ${oldDescription}
                 <div className="glass rounded-[2rem] p-8 md:p-12 border border-white/15 bg-gradient-to-br from-[#1c1c1c] to-[#121212] relative overflow-hidden mb-10 text-right shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
                   
-                  <div className="flex flex-col md:flex-row-reverse md:justify-between md:items-center gap-6 mb-8">
-                    <div className="flex flex-col gap-1">
-                      <h1 className="text-3xl md:text-4xl font-black text-white flex items-center justify-end gap-3">
-                        <span>{meta.ideaTitle}</span>
-                        <Sparkles className="text-cyan-400 shrink-0" size={28} />
-                      </h1>
-                      <p className="text-zinc-400 text-sm md:text-base mt-2 font-medium leading-relaxed max-w-2xl">
-                        {meta.ideaSubtitle}
-                      </p>
-                    </div>
+                   <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-8">
+                     <div className="flex flex-col gap-1">
+                       <h1 className="text-3xl md:text-4xl font-black text-white flex items-center justify-start gap-3">
+                         <Sparkles className="text-cyan-400 shrink-0" size={28} />
+                         <span>{meta.ideaTitle}</span>
+                       </h1>
+                       <p className="text-zinc-400 text-sm md:text-base mt-2 font-medium leading-relaxed max-w-2xl text-right">
+                         {meta.ideaSubtitle}
+                       </p>
+                     </div>
                     
                     <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
                       <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
@@ -1037,15 +1074,15 @@ ${oldDescription}
                         className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden flex flex-col gap-6 text-right"
                       >
                         <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${colorClass}`}>
-                            {agent.statusLabel || 'تحليل جزئي'}
-                          </span>
                           <div className="flex items-center gap-3">
                             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                               {getAgentIcon(agent.agentId)}
-                              <span>{agent.agentName}</span>
+                              <span>{agentNamesAr[agent.agentId] || agent.agentName}</span>
                             </h3>
                           </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${colorClass}`}>
+                            {agent.statusLabel || (agent.status === 'FULL' ? 'تحليل كامل' : agent.status === 'PARTIAL' ? 'تحليل جزئي' : 'لا يوجد بيانات')}
+                          </span>
                         </div>
                         
                         <div className="text-xs text-zinc-400">
