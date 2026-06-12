@@ -255,17 +255,10 @@ export class ScanService {
           submittedDescription: sanitizedDescription,
           projectId: project.id,
           projectTitle: project.title,
+          deductedCredit: usePaidCredit,
         }),
       },
     });
-
-    if (usePaidCredit) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { scanCredits: { decrement: 1 } },
-      });
-      this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${user.scanCredits - 1}`);
-    }
 
     await this.prisma.auditLog.create({
       data: {
@@ -278,7 +271,23 @@ export class ScanService {
     this.logger.log(`Strategic scan ${scan.id} queued for project ${project.id}`);
 
     // 6. Enqueue background execution
-    await this.queue.enqueueScan(scan.id, project.id, sanitizedDescription);
+    try {
+      await this.queue.enqueueScan(scan.id, project.id, sanitizedDescription);
+    } catch (queueErr) {
+      await this.prisma.scan.update({
+        where: { id: scan.id },
+        data: { status: 'FAILED' }
+      }).catch((e: any) => this.logger.error('Failed to mark scan status as FAILED on enqueue error', e));
+      throw queueErr;
+    }
+
+    if (usePaidCredit) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { scanCredits: { decrement: 1 } },
+      });
+      this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${user.scanCredits - 1}`);
+    }
 
     return {
       scanId: scan.id,

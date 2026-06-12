@@ -41,6 +41,64 @@ export class QueueService implements OnModuleInit {
     } catch (error) {
       this.logger.error('Failed to configure Redis client.', error);
     }
+
+    // Perform boot recovery for stuck scans
+    await this.recoverStuckScans();
+  }
+
+  private async recoverStuckScans() {
+    this.logger.log('Starting boot recovery scan check for stuck jobs...');
+    try {
+      const stuckScans = await this.prisma.scan.findMany({
+        where: {
+          status: { in: ['PENDING', 'PROCESSING'] }
+        },
+        include: { project: true }
+      });
+
+      if (stuckScans.length === 0) {
+        this.logger.log('No stuck scans detected on boot.');
+        return;
+      }
+
+      this.logger.warn(`Detected ${stuckScans.length} stuck scans. Initiating recovery & refund protocol...`);
+
+      for (const scan of stuckScans) {
+        let parsedPayload: any = {};
+        try {
+          parsedPayload = scan.payload ? JSON.parse(String(scan.payload)) : {};
+        } catch (e) {}
+
+        if (parsedPayload.deductedCredit && scan.project?.userId) {
+          await this.prisma.user.update({
+            where: { id: scan.project.userId },
+            data: { scanCredits: { increment: 1 } }
+          }).catch((e: any) => this.logger.error(`Failed to refund user ${scan.project.userId} during recovery`, e));
+
+          parsedPayload.deductedCredit = false;
+          this.logger.log(`[Recovery Refund] Refunded 1 credit to user ${scan.project.userId} for stuck scan ${scan.id}`);
+        }
+
+        await this.prisma.scan.update({
+          where: { id: scan.id },
+          data: {
+            status: 'FAILED',
+            payload: JSON.stringify(parsedPayload),
+            errors: JSON.stringify([{ code: 'BOOT_RECOVERY', message: 'تم إعادة تشغيل المخدم أثناء فحص الفكرة.' }])
+          }
+        }).catch((e: any) => this.logger.error(`Failed to update stuck scan ${scan.id} to FAILED`, e));
+
+        if (scan.projectId) {
+          await this.prisma.project.update({
+            where: { id: scan.projectId },
+            data: { status: 'DRAFT' }
+          }).catch((e: any) => this.logger.error(`Failed to reset stuck project ${scan.projectId} status to DRAFT`, e));
+        }
+      }
+      this.logger.log('Boot recovery scan check completed.');
+    } catch (err: any) {
+      this.logger.error('Failed to complete boot recovery scan check', err);
+    }
   }
 
   private initializeBullMQ() {
@@ -123,6 +181,35 @@ export class QueueService implements OnModuleInit {
     } catch (error) {
       this.logger.error(`[Worker Failure] Critical scan worker crash for scan: ${scanId}`, error);
 
+      try {
+        const scan = await this.prisma.scan.findUnique({
+          where: { id: scanId },
+          include: { project: true }
+        });
+        
+        let parsedPayload: any = {};
+        try {
+          parsedPayload = scan?.payload ? JSON.parse(String(scan.payload)) : {};
+        } catch (e) {}
+
+        if (parsedPayload.deductedCredit && scan?.project?.userId) {
+          await this.prisma.user.update({
+            where: { id: scan.project.userId },
+            data: { scanCredits: { increment: 1 } }
+          });
+          
+          parsedPayload.deductedCredit = false;
+          await this.prisma.scan.update({
+            where: { id: scanId },
+            data: { payload: JSON.stringify(parsedPayload) }
+          }).catch((e: any) => this.logger.error('Failed to update payload after refund', e));
+
+          this.logger.log(`[Refund] Refunded 1 scan credit to user: ${scan.project.userId} for failed scan: ${scanId}`);
+        }
+      } catch (refundErr: any) {
+        this.logger.error(`Failed to execute scan failure refund for scan: ${scanId}`, refundErr);
+      }
+
       await this.prisma.scan.update({
         where: { id: scanId },
         data: { status: 'FAILED' },
@@ -134,7 +221,6 @@ export class QueueService implements OnModuleInit {
         message: error instanceof Error ? error.message : 'Strategic analysis scan failed.',
       });
 
-      // Throw to let BullMQ handle retry and DLQ hook
       throw error;
     }
   }

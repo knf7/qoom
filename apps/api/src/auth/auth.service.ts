@@ -13,7 +13,6 @@ import { randomUUID } from 'crypto';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private resetCodes = new Map<string, { code: string; expiresAt: Date }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -179,7 +178,18 @@ export class AuthService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    this.resetCodes.set(email.toLowerCase(), { code, expiresAt });
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'PASSWORD_RESET_CODE',
+        userId: user.id,
+        details: JSON.stringify({
+          email: email.toLowerCase(),
+          code,
+          expiresAt: expiresAt.toISOString(),
+        }),
+      },
+    });
+
     this.logger.log(`Password reset code generated for ${email}: ${code}`);
 
     return {
@@ -190,18 +200,30 @@ export class AuthService {
 
   async resetPassword(input: any): Promise<{ success: boolean; message: string }> {
     const email = input.email.toLowerCase();
-    const record = this.resetCodes.get(email);
+    
+    const recentLogs = await this.prisma.auditLog.findMany({
+      where: {
+        action: 'PASSWORD_RESET_CODE',
+        createdAt: { gte: new Date(Date.now() - 20 * 60 * 1000) },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
-    if (!record) {
+    const logRecord = recentLogs.find((log) => {
+      try {
+        const details = JSON.parse(log.details || '{}');
+        return details.email === email && details.code === input.code;
+      } catch {
+        return false;
+      }
+    });
+
+    if (!logRecord) {
       throw new UnauthorizedException('رمز التحقق غير صحيح أو غير متوفر.');
     }
 
-    if (record.code !== input.code) {
-      throw new UnauthorizedException('رمز التحقق غير صحيح.');
-    }
-
-    if (new Date() > record.expiresAt) {
-      this.resetCodes.delete(email);
+    const details = JSON.parse(logRecord.details || '{}');
+    if (new Date() > new Date(details.expiresAt)) {
       throw new UnauthorizedException('انتهت صلاحية رمز التحقق.');
     }
 
@@ -212,7 +234,11 @@ export class AuthService {
       data: { password: hashedPassword },
     });
 
-    this.resetCodes.delete(email);
+    await this.prisma.auditLog.update({
+      where: { id: logRecord.id },
+      data: { action: 'PASSWORD_RESET_USED' },
+    }).catch(() => {});
+
     this.logger.log(`Password reset successfully for user: ${email}`);
 
     return { success: true, message: 'تم إعادة تعيين كلمة المرور بنجاح.' };
