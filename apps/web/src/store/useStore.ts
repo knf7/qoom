@@ -33,9 +33,26 @@ interface StoreState {
   logout: () => void;
 }
 
+const checkTokenExpiry = (token: string | null) => {
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch (e) {
+    return false;
+  }
+};
+
+const initialToken = localStorage.getItem('qoom_token');
+const isTokenValid = checkTokenExpiry(initialToken);
+if (!isTokenValid && initialToken) {
+  localStorage.removeItem('qoom_token');
+  localStorage.removeItem('qoom_user');
+}
+
 export const useStore = create<StoreState>((set) => ({
-  user: JSON.parse(localStorage.getItem('qoom_user') || 'null'),
-  token: localStorage.getItem('qoom_token'),
+  user: isTokenValid ? JSON.parse(localStorage.getItem('qoom_user') || 'null') : null,
+  token: isTokenValid ? initialToken : null,
   projects: [],
   activeScanId: null,
   scanProgress: null,

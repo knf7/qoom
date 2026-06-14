@@ -11,8 +11,16 @@ import { InputSanitizer } from '@qoom/security';
 export class SanitizerInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    if (request && request.body) {
-      request.body = this.sanitizeObject(request.body);
+    if (request) {
+      if (request.body) {
+        request.body = this.sanitizeObject(request.body);
+      }
+      if (request.query) {
+        request.query = this.sanitizeObject(request.query);
+      }
+      if (request.params) {
+        request.params = this.sanitizeObject(request.params);
+      }
     }
     return next.handle();
   }

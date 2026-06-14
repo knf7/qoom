@@ -116,7 +116,7 @@ export class QueueService implements OnModuleInit {
         const { scanId, projectDescription } = job.data;
         await this.processScanJob(scanId, projectDescription);
       },
-      { connection, concurrency: 1 } 
+      { connection, concurrency: 100 } 
     );
 
     this.scanWorker.on('completed', (job) => {

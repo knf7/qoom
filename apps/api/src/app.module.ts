@@ -16,6 +16,8 @@ import { EventsModule } from './orchestrator/events/events.module';
 import { CopilotModule } from './modules/copilot/copilot.module';
 import { BillingModule } from './modules/billing/billing.module';
 
+import { AuthRateLimiterMiddleware } from './security/middleware/auth-rate-limiter.middleware';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -44,7 +46,7 @@ import { BillingModule } from './modules/billing/billing.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Apply global rate limiting across all endpoints
-    consumer.apply(RateLimiterMiddleware).forRoutes('*');
+    consumer.apply(AuthRateLimiterMiddleware).forRoutes('auth/*');
+    consumer.apply(RateLimiterMiddleware).exclude('auth/*').forRoutes('*');
   }
 }

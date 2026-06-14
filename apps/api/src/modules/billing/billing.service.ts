@@ -76,7 +76,7 @@ export class BillingService {
 
     // Return simulated checkout URL
     const sessionId = `mock_session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const simulationUrl = `${origin}/checkout-simulation?session_id=${sessionId}&userId=${userId}&packageId=${packageId}&credits=${pkg.credits}&price=${pkg.price}`;
+    const simulationUrl = `${origin}/checkout-simulation?session_id=${sessionId}&packageId=${packageId}&credits=${pkg.credits}&price=${pkg.price}`;
     
     return { url: simulationUrl, simulated: true };
   }

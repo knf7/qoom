@@ -15,7 +15,7 @@ export default function Passport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiBaseUrl = 'http://localhost:3001';
+
 
   useEffect(() => {
     fetchPassportDetails();

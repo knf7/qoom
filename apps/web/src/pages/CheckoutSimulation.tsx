@@ -79,7 +79,7 @@ export default function CheckoutSimulation() {
 
     try {
       // Confirm the mock payment with backend
-      await apiClient('/billing/confirm-mock-payment', {
+      const res = await apiClient('/billing/confirm-mock-payment', {
         method: 'POST',
         data: {
           packageId,
@@ -87,9 +87,9 @@ export default function CheckoutSimulation() {
         },
       });
 
-      // Update state in client and redirect
+      // Update state safely with backend confirmation
       if (user) {
-        user.scanCredits = (user.scanCredits ?? 0) + parseInt(credits, 10);
+        useStore.getState().setAuth({ ...user, scanCredits: res.newCredits }, useStore.getState().token);
       }
       
       setTimeout(() => {

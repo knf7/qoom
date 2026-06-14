@@ -26,6 +26,20 @@ export const LoginSchema = z.object({
 
 export type LoginInput = z.infer<typeof LoginSchema>;
 
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address').max(255),
+});
+
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
+
+export const ResetPasswordSchema = z.object({
+  email: z.string().email('Invalid email address').max(255),
+  code: z.string().length(6, 'Verification code must be 6 digits'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters').max(100),
+});
+
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+
 export interface AuthResponse {
   accessToken: string;
   user: {

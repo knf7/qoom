@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterInput, LoginInput, AuthResponse } from '@qoom/types';
+import { RegisterInput, LoginInput, AuthResponse, ResetPasswordInput } from '@qoom/types';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
@@ -78,6 +78,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role as 'USER' | 'ADMIN',
+        scanCredits: user.scanCredits ?? 0,
       },
     };
   }
@@ -125,6 +126,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role as 'USER' | 'ADMIN',
+        scanCredits: user.scanCredits ?? 0,
       },
     };
   }
@@ -190,19 +192,30 @@ export class AuthService {
       },
     });
 
-    this.logger.log(`Password reset code generated for ${email}: ${code}`);
+    this.logger.log(`Password reset code generated for ${email}`);
+
+    const isProduction = process.env.NODE_ENV === 'production';
 
     return {
       message: 'تم إرسال رمز التحقق بنجاح.',
-      devCode: code,
+      ...(!isProduction && { devCode: code }),
     };
   }
 
-  async resetPassword(input: any): Promise<{ success: boolean; message: string }> {
+  async resetPassword(input: ResetPasswordInput): Promise<{ success: boolean; message: string }> {
     const email = input.email.toLowerCase();
     
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    
+    if (!user) {
+      throw new UnauthorizedException('رمز التحقق غير صحيح أو غير متوفر.');
+    }
+
     const recentLogs = await this.prisma.auditLog.findMany({
       where: {
+        userId: user.id,
         action: 'PASSWORD_RESET_CODE',
         createdAt: { gte: new Date(Date.now() - 20 * 60 * 1000) },
       },
@@ -212,7 +225,7 @@ export class AuthService {
     const logRecord = recentLogs.find((log) => {
       try {
         const details = JSON.parse(log.details || '{}');
-        return details.email === email && details.code === input.code;
+        return details.code === input.code;
       } catch {
         return false;
       }

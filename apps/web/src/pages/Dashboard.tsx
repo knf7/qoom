@@ -39,7 +39,9 @@ export default function Dashboard() {
     try {
       const data = await apiClient('/projects');
       setProjects(data);
-    } catch (err) {}
+    } catch (err: any) {
+      setError(err.message || 'فشل في جلب المشاريع. يرجى المحاولة لاحقاً.');
+    }
   };
 
   const handleCreateProject = async (e: React.FormEvent) => {

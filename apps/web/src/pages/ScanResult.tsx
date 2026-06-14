@@ -66,7 +66,7 @@ ${oldDescription}
 
       await apiClient(`/projects/${projectId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ description: newDescription })
+        data: { description: newDescription }
       });
 
       // Clear the current scan state and show isScanning / loading states
@@ -215,7 +215,7 @@ ${oldDescription}
 
     socket.onopen = () => {
       clearTimeout(connectionTimeout);
-      socket.send(JSON.stringify({ event: 'subscribeScan', data: { scanId } }));
+      socket.send(JSON.stringify({ event: 'subscribeScan', data: { scanId, token } }));
     };
 
     socket.onerror = (err) => {

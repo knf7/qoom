@@ -294,7 +294,7 @@ export default function Auth() {
               </>
             )}
 
-            {isLogin && !isForgotPassword && !isResettingPassword && (
+            {!isForgotPassword && !isResettingPassword && (
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-zinc-400 font-mono">{t('auth.passwordLabel')}</label>
                 <div className="relative">
@@ -302,6 +302,7 @@ export default function Auth() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -315,6 +316,12 @@ export default function Auth() {
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                {!isLogin && password.length > 0 && password.length < 8 && (
+                  <p className="text-[10px] text-rose-400/80 mt-0.5">كلمة المرور يجب أن تكون 8 أحرف على الأقل</p>
+                )}
+                {!isLogin && password.length >= 8 && (
+                  <p className="text-[10px] text-emerald-400/80 mt-0.5">✓ كلمة المرور مقبولة</p>
+                )}
               </div>
             )}
 

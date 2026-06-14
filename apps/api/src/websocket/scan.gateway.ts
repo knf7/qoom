@@ -10,6 +10,8 @@ import {
 import { Server } from 'ws';
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../database/prisma.service';
 
 @WebSocketGateway({
   path: '/ws',
@@ -23,8 +25,12 @@ export class ScanGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  // Active socket connections mapped by scanRoom: scanId -> Set of WebSockets
   private activeScanRooms = new Map<string, Set<any>>();
+
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService
+  ) {}
 
   handleConnection(client: any) {
     this.logger.log('Websocket client connection initiated.');
@@ -32,12 +38,9 @@ export class ScanGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: any) {
     this.logger.log('Websocket client disconnected. Pruning channel registrations...');
-    
-    // Remove the socket from all registered rooms to prevent memory leaks
     for (const [scanId, clients] of this.activeScanRooms.entries()) {
       if (clients.has(client)) {
         clients.delete(client);
-        this.logger.log(`Client removed from scan room: ${scanId}`);
       }
       if (clients.size === 0) {
         this.activeScanRooms.delete(scanId);
@@ -45,17 +48,32 @@ export class ScanGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /**
-   * Client registers to receive progress updates for a specific scan ID
-   */
   @SubscribeMessage('subscribeScan')
-  handleSubscribeScan(
-    @MessageBody() data: { scanId: string },
+  async handleSubscribeScan(
+    @MessageBody() data: { scanId: string; token?: string },
     @ConnectedSocket() client: any
   ) {
-    const { scanId } = data;
-    if (!scanId) {
-      client.send(JSON.stringify({ event: 'error', data: 'Invalid Scan ID specified' }));
+    const { scanId, token } = data;
+    if (!scanId || !token) {
+      client.send(JSON.stringify({ event: 'error', data: 'Unauthorized or invalid payload' }));
+      return;
+    }
+
+    try {
+      const decoded = this.jwtService.verify(token);
+      const userId = decoded.sub;
+
+      const scan = await this.prisma.scan.findUnique({
+        where: { id: scanId },
+        include: { project: true },
+      });
+
+      if (!scan || scan.project.userId !== userId) {
+        client.send(JSON.stringify({ event: 'error', data: 'Unauthorized to view this scan' }));
+        return;
+      }
+    } catch (err) {
+      client.send(JSON.stringify({ event: 'error', data: 'Unauthorized' }));
       return;
     }
 
