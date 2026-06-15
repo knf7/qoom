@@ -106,7 +106,7 @@ export default function Copilot() {
       if (scanData.scanId) {
         navigate(`/scan/${scanData.scanId}`);
       } else {
-        throw new Error(scanData.message || 'فشل في إطلاق محرك الفحص الاستثماري.');
+        throw new Error(scanData.message || 'فشل في إطلاق محرك الفحص التحليلي.');
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء الاتصال بالخادم.');
@@ -154,7 +154,7 @@ export default function Copilot() {
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-2">
                     <Compass size={18} className="text-cyan-400" />
-                    <span className="text-sm font-bold text-zinc-300">اشرح فكرتك الاستثمارية</span>
+                    <span className="text-sm font-bold text-zinc-300">اشرح فكرتك للوكلاء</span>
                   </div>
                   <span className="text-[10px] text-zinc-600 font-mono tracking-widest">{rawIdea.length} / 2000</span>
                 </div>

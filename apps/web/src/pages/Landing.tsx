@@ -111,7 +111,7 @@ export default function Landing() {
             className="glass border border-white/5 px-4 py-1.5 rounded-full flex items-center gap-2"
           >
             <Sparkles size={12} className="text-amber-500" />
-            <span className="text-[10px] font-sans tracking-wide text-zinc-400 font-semibold">قُوم • الجيل الجديد من تقييم الأفكار استثمارياً</span>
+            <span className="text-[10px] font-sans tracking-wide text-zinc-400 font-semibold">قُوم • الجيل الجديد من تقييم الأفكار والمشاريع</span>
           </motion.div>
 
           {/* Title */}
@@ -327,7 +327,7 @@ export default function Landing() {
       >
         <div className="text-center mb-12">
           <h2 className="text-xl md:text-2xl font-bold text-white">تحليل شامل ومتكامل للفكرة</h2>
-          <p className="text-zinc-500 text-xs mt-2">خمسة وكلاء برتبة شركاء استثمار يفحصون فكرتك من كافة الجوانب</p>
+          <p className="text-zinc-500 text-xs mt-2">خمسة وكلاء برتبة خبراء تحليل يفحصون فكرتك من كافة الجوانب</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -365,7 +365,7 @@ export default function Landing() {
             <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center mb-6 text-zinc-400">
               <BrainCircuit size={14} />
             </div>
-            <h3 className="text-base font-bold text-white mb-3">حكم استثماري نزيه</h3>
+            <h3 className="text-base font-bold text-white mb-3">حكم تقييمي نزيه</h3>
             <p className="text-xs text-zinc-500 leading-relaxed font-medium">نخرج بحكم واضح ومنطقي بناءً على البيانات دون أي انحيازات شخصية: اعتماد، تعديل مسار، أو إلغاء.</p>
           </div>
 

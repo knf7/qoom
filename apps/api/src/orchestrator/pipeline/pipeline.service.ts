@@ -309,17 +309,17 @@ ${projectDescription}
     }
 
     // Determine verdict and color
-    let verdict = 'تحليل جزئي';
+    let verdict = 'فكرة واعدة (تحتاج تطوير)';
     let verdictColor = 'amber';
     if (noneCount === 5) {
       verdict = 'فشل التحليل';
       verdictColor = 'rose';
     } else if (fullCount === 5) {
       if (overallScore !== null && overallScore >= 60) {
-        verdict = 'جاهز للتنفيذ';
+        verdict = 'فكرة عبقرية (ادعم الفكرة)';
         verdictColor = 'emerald';
       } else {
-        verdict = 'غير مؤهل';
+        verdict = 'تحتاج تعديل جوهري';
         verdictColor = 'rose';
       }
     }
@@ -414,7 +414,7 @@ ${projectDescription}
 
     // Build the consolidated V3.0 JSON report
     const ideaTitle = scanRecord?.project?.title || 'عنوان الفكرة';
-    const ideaSubtitle = scanRecord?.project?.description ? (scanRecord.project.description.substring(0, 100) + '...') : 'تحليل الفكرة الاستثمارية المقترحة';
+    const ideaSubtitle = scanRecord?.project?.description ? (scanRecord.project.description.substring(0, 100) + '...') : 'تحليل الفكرة المقترحة';
     const scanDate = new Date().toISOString().split('T')[0];
 
     const consolidatedReport = {
@@ -446,7 +446,7 @@ ${projectDescription}
         content: synthesisSummary,
         actionItems
       },
-      disclaimer: 'هذا تحليل استشاري من AI. استشير خبير بشري قبل اتخاذ أي قرار استثماري.'
+      disclaimer: 'هذا تحليل استشاري من AI. استشير خبير بشري قبل اتخاذ أي قرار مصيري.'
     };
 
     // Update project status when completed

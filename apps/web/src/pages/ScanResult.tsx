@@ -303,7 +303,7 @@ ${oldDescription}
     // PASS / BUILD
     if (v === 'PASS' || v.includes('BUILD') || v.includes('STRONG GO') || v.includes('GO')) {
       return { 
-        text: 'جاهز للتنفيذ', 
+        text: 'فكرة عبقرية (ادعم الفكرة)', 
         sub: 'PASS', 
         color: 'text-emerald-400', 
         glow: 'shadow-[0_0_50px_rgba(16,185,129,0.2)]', 
@@ -314,7 +314,7 @@ ${oldDescription}
     // FAIL / KILL
     if (v === 'FAIL' || v.includes('KILL')) {
       return { 
-        text: 'غير مؤهل', 
+        text: 'تحتاج تعديل جوهري', 
         sub: 'FAIL', 
         color: 'text-rose-400', 
         glow: 'shadow-[0_0_50px_rgba(244,63,94,0.2)]', 
@@ -325,7 +325,7 @@ ${oldDescription}
     // PARTIAL / PIVOT
     if (v === 'PARTIAL' || v.includes('PIVOT') || v.includes('IDEA DEVELOPMENT REQUIRED')) {
       return { 
-        text: 'تحليل جزئي', 
+        text: 'فكرة واعدة (تحتاج تطوير)', 
         sub: 'PARTIAL', 
         color: 'text-amber-400', 
         glow: 'shadow-[0_0_50px_rgba(245,158,11,0.2)]', 
@@ -672,7 +672,7 @@ ${oldDescription}
                    <div className="bg-cyan-500/5 border border-cyan-500/10 p-5 rounded-2xl mb-8 text-right">
                      <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider mb-2">جرب صياغة مثل:</div>
                      <p className="text-xs text-zinc-300 leading-relaxed font-bold">
-                       "منصة ذكاء استثماري تقدم للمستثمرين العرب تحليلات سريعة وتوصيات للشركات الناشئة بالاعتماد على 5 وكلاء ذكاء اصطناعي بنموذج اشتراك شهري."
+                       "منصة ذكاء اصطناعي تقدم لرواد الأعمال تحليلات سريعة وتوصيات للشركات الناشئة بالاعتماد على 5 وكلاء ذكاء اصطناعي بنموذج اشتراك شهري."
                      </p>
                    </div>
                  </>
@@ -706,7 +706,7 @@ ${oldDescription}
               progressBar: { full: 0, partial: 5, none: 0 }
             };
             const executiveSummary = payload.executiveSummary || {
-              verdict: scan?.verdict || 'تحليل جزئي',
+              verdict: scan?.verdict || 'فكرة واعدة (تحتاج تطوير)',
               verdictColor: scan?.verdict === 'PASS' ? 'emerald' : scan?.verdict === 'FAIL' ? 'rose' : 'amber',
               score: scan?.score,
               confidence: scan?.confidence ? Math.round(scan.confidence * 100) : 45,
@@ -770,7 +770,7 @@ ${oldDescription}
               content: scan?.recommendation || 'بناءً على آراء الوكلاء...',
               actionItems: []
             };
-            const disclaimer = payload.disclaimer || 'هذا تحليل استشاري من AI. استشير خبير بشري قبل اتخاذ أي قرار استثماري.';
+            const disclaimer = payload.disclaimer || 'هذا تحليل استشاري من AI. استشير خبير بشري قبل اتخاذ أي قرار مصيري.';
 
             return (
               <motion.div 
@@ -1111,12 +1111,10 @@ ${oldDescription}
                         <div className="space-y-6">
                           {agent.sections?.known?.items?.length > 0 && (
                             <div>
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-2">
-                                <span>({agent.sections.known.items.length})</span>
-                                <span className="flex items-center gap-1.5">
-                                  <span>{cleanTitle(agent.sections.known.title) || 'ما أعرفه'}</span>
-                                  <CheckCircle2 size={14} className="text-emerald-400" />
-                                </span>
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-2">
+                                <CheckCircle2 size={14} className="text-emerald-400" />
+                                <span>{cleanTitle(agent.sections.known.title) || 'ما أعرفه'}</span>
+                                <span className="text-zinc-500 font-mono text-xs mr-1">({agent.sections.known.items.length})</span>
                               </div>
                               <ul className="space-y-2 text-right" dir="rtl">
                                 {agent.sections.known.items.map((item: string, i: number) => (
@@ -1131,12 +1129,10 @@ ${oldDescription}
 
                           {agent.sections?.unknown?.items?.length > 0 && (
                             <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-2">
-                                <span>({agent.sections.unknown.items.length})</span>
-                                <span className="flex items-center gap-1.5">
-                                  <span>{cleanTitle(agent.sections.unknown.title) || 'ما لا أعرفه'}</span>
-                                  <HelpCircle size={14} className="text-amber-400" />
-                                </span>
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-2">
+                                <HelpCircle size={14} className="text-amber-400" />
+                                <span>{cleanTitle(agent.sections.unknown.title) || 'ما لا أعرفه'}</span>
+                                <span className="text-zinc-500 font-mono text-xs mr-1">({agent.sections.unknown.items.length})</span>
                               </div>
                               <ul className="space-y-2 text-right" dir="rtl">
                                 {agent.sections.unknown.items.map((item: string, i: number) => (
@@ -1151,9 +1147,9 @@ ${oldDescription}
 
                           {agent.sections?.analysis?.content && (
                             <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-1.5">
-                                <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
                                 <Sparkles size={14} className="text-cyan-400" />
+                                <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
                               </div>
                               <p className="text-xs md:text-sm text-zinc-400 leading-relaxed bg-[#080808] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
                                 {agent.sections.analysis.content}
@@ -1163,9 +1159,9 @@ ${oldDescription}
 
                           {agent.sections?.recommendation?.content && (
                             <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-end gap-1.5">
-                                <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
                                 <Zap size={14} className="text-purple-400" />
+                                <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
                               </div>
                               <p className="text-xs md:text-sm text-white font-bold leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5">
                                 {agent.sections.recommendation.content}
@@ -1176,9 +1172,9 @@ ${oldDescription}
 
                         {agent.sources?.length > 0 && (
                           <div className="pt-4 border-t border-white/5">
-                            <div className="text-xs text-zinc-500 mb-2 flex items-center justify-end gap-1.5">
-                              <span>المصادر والمراجع</span>
+                            <div className="text-xs text-zinc-500 mb-2 flex items-center justify-start gap-1.5">
                               <HelpCircle size={12} />
+                              <span>المصادر والمراجع</span>
                             </div>
                             <div className="flex flex-row-reverse flex-wrap gap-2">
                               {agent.sources.map((src: any, sIdx: number) => {
