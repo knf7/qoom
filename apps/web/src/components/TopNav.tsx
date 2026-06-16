@@ -113,9 +113,9 @@ export default function TopNav() {
         <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
           <div className="flex items-center gap-2">
             <span className="text-sm font-black text-white tracking-widest">قوم</span>
-            <div className="w-6 h-6 rounded-md glass flex items-center justify-center text-zinc-400 border border-white/10 text-xs">
-              ⌘
-            </div>
+            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ml-1">
+              بيتا (Beta)
+            </span>
           </div>
           <span className="text-[9px] font-mono tracking-[0.2em] text-zinc-500 uppercase hidden sm:block">
             Venture Intelligence OS
@@ -195,9 +195,10 @@ export default function TopNav() {
                 <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180 text-cyan-400' : ''}`} />
                 
                 {/* User scan credits count quick badge */}
-                <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded-full">
-                  {user.scanCredits ?? 0}
-                </span>
+                <div className="flex items-center gap-1.5 text-[9px] bg-cyan-950/40 border border-cyan-500/20 px-2 py-0.5 rounded-full">
+                  <span className="text-cyan-400/80 font-bold hidden sm:inline">مرات الفحص المتاحة:</span>
+                  <span className="font-mono font-bold text-cyan-400">{user.scanCredits ?? 0}</span>
+                </div>
 
                 {/* Avatar Initials */}
                 <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-bold text-zinc-300">
@@ -243,7 +244,7 @@ export default function TopNav() {
                     {/* Scan Credits Account (Stripe) */}
                     <div className="p-3 bg-cyan-950/20 border border-cyan-500/10 rounded-xl space-y-2">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-zinc-400">رصيد التحليلات المدفوعة:</span>
+                        <span className="text-zinc-400">مرات الفحص المتاحة (رصيد):</span>
                         <span className="text-cyan-400 font-bold font-mono">{user.scanCredits ?? 0}</span>
                       </div>
                       <button 

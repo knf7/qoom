@@ -106,7 +106,6 @@ export class ScanController {
   }
 
   @Get('passport/:id')
-  @UseGuards(JwtAuthGuard)
   async getPassport(@Param('id') scanId: string) {
     return this.scanService.getPassportCredentials(scanId);
   }
