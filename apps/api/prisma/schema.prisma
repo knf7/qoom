@@ -14,7 +14,7 @@ model User {
   password  String
   name      String?
   role      String     @default("USER")
-  scanCredits Int      @default(0)
+  scanCredits Int      @default(2)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   deletedAt DateTime?

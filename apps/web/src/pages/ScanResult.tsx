@@ -1012,15 +1012,15 @@ ${oldDescription}
 
                 {/* Refined Idea Section */}
                 {payload.refinedIdea && (
-                  <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
-                    <h2 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center justify-end gap-2.5">
+                  <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right" dir="rtl">
+                    <h2 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center justify-start gap-2.5">
                       <Sparkles size={22} className="text-cyan-400 shrink-0" />
                       <span>الفكرة المُصقلة (Refined Venture DNA)</span>
                     </h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                        <span className="text-xs text-zinc-500 flex items-center justify-start gap-1.5 mb-1">
                           <Sparkles size={12} className="text-cyan-400" />
                           <span>الحل المقترح</span>
                         </span>
@@ -1030,7 +1030,7 @@ ${oldDescription}
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                        <span className="text-xs text-zinc-500 flex items-center justify-start gap-1.5 mb-1">
                           <Target size={12} className="text-emerald-400" />
                           <span>الجمهور المستهدف</span>
                         </span>
@@ -1040,7 +1040,7 @@ ${oldDescription}
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                        <span className="text-xs text-zinc-500 flex items-center justify-start gap-1.5 mb-1">
                           <Coins size={12} className="text-amber-400" />
                           <span>نموذج العمل المالي</span>
                         </span>
@@ -1050,7 +1050,7 @@ ${oldDescription}
                       </div>
 
                       <div className="bg-black/35 p-4 rounded-xl border border-white/5">
-                        <span className="text-xs text-zinc-500 flex items-center justify-end gap-1.5 mb-1">
+                        <span className="text-xs text-zinc-500 flex items-center justify-start gap-1.5 mb-1">
                           <Zap size={12} className="text-purple-400" />
                           <span>الميزة التنافسية</span>
                         </span>
@@ -1290,8 +1290,8 @@ ${oldDescription}
                 )}
 
                 {/* Synthesis Section */}
-                <div className="glass rounded-[2rem] p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
-                  <h2 className="text-2xl font-black text-white mb-6 flex items-center justify-end gap-2.5">
+                <div className="glass rounded-[2rem] p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right" dir="rtl">
+                  <h2 className="text-2xl font-black text-white mb-6 flex items-center justify-start gap-2.5">
                     <BrainCircuit size={22} className="text-cyan-400 shrink-0" />
                     <span>{cleanTitle(synthesis.title) || 'التوليفة الاستراتيجية'}</span>
                   </h2>
@@ -1304,9 +1304,9 @@ ${oldDescription}
                   <div className="space-y-6">
                     {synthesis.actionItems?.some((item: any) => item.priority === 'HIGH') && (
                       <div>
-                        <div className="flex items-center justify-end gap-2 text-rose-400 font-bold mb-3 text-sm">
-                          <span>أولوية عالية</span>
+                        <div className="flex items-center justify-start gap-2 text-rose-400 font-bold mb-3 text-sm">
                           <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                          <span>أولوية عالية</span>
                         </div>
                         <ul className="space-y-2 pr-4 text-right" dir="rtl">
                           {synthesis.actionItems
@@ -1323,9 +1323,9 @@ ${oldDescription}
 
                     {synthesis.actionItems?.some((item: any) => item.priority === 'MEDIUM') && (
                       <div className="pt-4 border-t border-white/5">
-                        <div className="flex items-center justify-end gap-2 text-amber-400 font-bold mb-3 text-sm">
-                          <span>أولوية متوسطة</span>
+                        <div className="flex items-center justify-start gap-2 text-amber-400 font-bold mb-3 text-sm">
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                          <span>أولوية متوسطة</span>
                         </div>
                         <ul className="space-y-2 pr-4 text-right" dir="rtl">
                           {synthesis.actionItems
