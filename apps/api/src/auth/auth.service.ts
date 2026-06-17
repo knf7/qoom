@@ -31,6 +31,24 @@ export class AuthService {
       throw new ConflictException('يرجى استخدام بريد إلكتروني حقيقي (البريد المؤقت غير مسموح).');
     }
 
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+    if (recaptchaSecret) {
+      if (!input.captchaToken) {
+        throw new UnauthorizedException('يرجى التحقق من اختبار الكابتشا (reCAPTCHA) قبل التسجيل.');
+      }
+      try {
+        const verifyRes = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${input.captchaToken}`, {
+          method: 'POST'
+        });
+        const verifyJson = await verifyRes.json();
+        if (!verifyJson.success) {
+          throw new UnauthorizedException('فشل اختبار الكابتشا. يرجى المحاولة مرة أخرى.');
+        }
+      } catch (err) {
+        throw new UnauthorizedException('فشل الاتصال بخادم التحقق (reCAPTCHA).');
+      }
+    }
+
     const existing = await this.prisma.user.findUnique({
       where: { email: input.email },
     });
@@ -92,6 +110,8 @@ export class AuthService {
     });
 
     if (!user) {
+      // Dummy hash to prevent timing-based email enumeration
+      await bcrypt.hash(input.password, 12);
       await this.auditFailedLogin(input.email, 'USER_NOT_FOUND', ipAddress, userAgent);
       throw new UnauthorizedException('Invalid email or password credentials.');
     }

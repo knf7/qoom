@@ -15,6 +15,7 @@ export const RegisterSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
   password: z.string().min(8, 'Password must be at least 8 characters').max(100),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100).optional(),
+  captchaToken: z.string().optional(),
 });
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
