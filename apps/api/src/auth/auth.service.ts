@@ -10,6 +10,10 @@ import { RegisterInput, LoginInput, AuthResponse, ResetPasswordInput } from '@qo
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
+// Pre-computed dummy hash to prevent timing-based email enumeration.
+// Cost factor 12, generated once at module load so login latency is minimal.
+const DUMMY_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGPjCcMv4MuJOb2YXkBMbGJz3S6';
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -110,8 +114,9 @@ export class AuthService {
     });
 
     if (!user) {
-      // Dummy hash to prevent timing-based email enumeration
-      await bcrypt.hash(input.password, 12);
+      // Compare against a pre-computed dummy hash to prevent timing-based email enumeration.
+      // This is ~same latency as a real bcrypt.compare but no new hash is generated each time.
+      await bcrypt.compare(input.password, DUMMY_HASH);
       await this.auditFailedLogin(input.email, 'USER_NOT_FOUND', ipAddress, userAgent);
       throw new UnauthorizedException('Invalid email or password credentials.');
     }
@@ -157,6 +162,7 @@ export class AuthService {
   async validateUserSession(userId: string): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: { id: true, email: true, name: true, role: true, scanCredits: true },
     });
     if (!user) {
       throw new UnauthorizedException('User session is invalid.');
@@ -166,6 +172,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role as 'USER' | 'ADMIN',
+      scanCredits: user.scanCredits ?? 0,
     };
   }
 

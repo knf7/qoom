@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopNav from './components/TopNav';
 import Landing from './pages/Landing';
 import Auth from './pages/Auth';
@@ -12,9 +12,17 @@ import CheckoutSimulation from './pages/CheckoutSimulation';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import { useI18n } from './utils/i18n';
+import { useStore } from './store/useStore';
 
 export default function App() {
   const { lang } = useI18n();
+  const { user, refreshUser } = useStore();
+
+  // Refresh live user data (especially scanCredits) on every app boot
+  useEffect(() => {
+    if (user) refreshUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // Sync document directions on initial mount

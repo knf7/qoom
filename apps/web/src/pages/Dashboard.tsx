@@ -12,7 +12,7 @@ import { apiClient } from '../utils/apiClient';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, token, projects, setProjects } = useStore();
+  const { user, token, projects, setProjects, refreshUser } = useStore();
   const { t, lang } = useI18n();
 
   const [title, setTitle] = useState('');
@@ -122,6 +122,8 @@ export default function Dashboard() {
       }
 
       if (scanData.scanId) {
+        // Immediately update credits badge in TopNav (deduction happened server-side)
+        await refreshUser();
         navigate(`/scan/${scanData.scanId}`);
       } else {
         setError(scanData.message || 'فشل في إطلاق التحليل. حاول مرة أخرى.');

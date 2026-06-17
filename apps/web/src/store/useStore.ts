@@ -26,6 +26,8 @@ interface StoreState {
   
   // Actions
   setAuth: (user: User | null, token: string | null) => void;
+  setUser: (user: Partial<User>) => void;
+  refreshUser: () => Promise<void>;
   setProjects: (projects: any[]) => void;
   setActiveScanId: (scanId: string | null) => void;
   updateScanProgress: (update: Partial<StoreState['scanProgress']>) => void;
@@ -72,6 +74,31 @@ export const useStore = create<StoreState>((set) => ({
       localStorage.removeItem('qoom_user');
     }
     set({ user, token });
+  },
+
+  setUser: (partial) =>
+    set((state) => {
+      if (!state.user) return {};
+      const updated = { ...state.user, ...partial };
+      localStorage.setItem('qoom_user', JSON.stringify(updated));
+      return { user: updated };
+    }),
+
+  refreshUser: async () => {
+    const { token } = useStore.getState();
+    if (!token) return;
+    try {
+      // Dynamically import apiClient to avoid circular dep at module init
+      const { apiClient } = await import('../utils/apiClient');
+      const data = await apiClient('/auth/me');
+      if (data && data.id) {
+        const updated = { ...useStore.getState().user, ...data };
+        localStorage.setItem('qoom_user', JSON.stringify(updated));
+        useStore.setState({ user: updated });
+      }
+    } catch {
+      // silent fail — don't break the app
+    }
   },
 
   setProjects: (projects) => set({ projects }),

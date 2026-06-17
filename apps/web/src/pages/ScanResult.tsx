@@ -11,7 +11,7 @@ import IdeaBuilderView from '../components/IdeaBuilderView';
 export default function ScanResult() {
   const { id: scanId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { token, user } = useStore();
+  const { token, user, refreshUser } = useStore();
   const { isScanning, scanProgress, initializeSwarm, updateAgentStatus, addTerminalLog, setScanning, setScanProgress, reset, agents, terminalLogs } = useAgentsStore();
 
   const getAgentIcon = (agentId: string) => {
@@ -301,6 +301,8 @@ ${oldDescription}
           setScanning(false);
           // Immediately fetch the final result and show the report
           fetchScanSnapshot();
+          // Refresh credits in TopNav (deduction happened on server)
+          refreshUser();
         }
         if (payload.event === 'scan:failed') {
           clearTimeout(connectionTimeout);
