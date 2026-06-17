@@ -407,10 +407,48 @@ ${projectDescription}
       }
     }
 
+    let qoomScoreReasoning = 'درجة التقييم تعكس التوازن بين الفرص المتاحة والمخاطر المحتملة بناءً على المعطيات الحالية.';
+    if (activeAnalyses.length > 0) {
+      try {
+        const analysesConcat = activeAnalyses.join('\n');
+        const systemPromptReasoning = `أنت QOOM. اقرأ تحليلات الوكلاء التالية وأعطني تبريراً (Reasoning) من سطر إلى سطرين يشرح سبب الدرجة النهائية للمشروع (${overallScore !== null ? overallScore : 0}/100).
+لا تعتمد على الحدس أو التفاؤل، واعتمد على الأدلة الموجودة في التحليل.
+يجب أن يكون الرد باللغة العربية، سطر أو سطرين فقط.`;
+
+        const resultReasoning = await this.gemini.queryModel(systemPromptReasoning, analysesConcat, 3, undefined, 'FLASH');
+        if (resultReasoning && resultReasoning.trim()) {
+          qoomScoreReasoning = resultReasoning.trim();
+        }
+      } catch (e) {
+        this.logger.error('Failed to extract reasoning via Gemini', e);
+      }
+    }
+
+    const scoreVal = overallScore !== null ? overallScore : 0;
+    let quickVerdictArabic = 'واعدة ولكن غير مثبتة';
+    if (noneCount === 5) quickVerdictArabic = 'لا ينصح بها';
+    else if (scoreVal >= 80) quickVerdictArabic = 'فرصة ممتازة (Excellent Opportunity)';
+    else if (scoreVal >= 60) quickVerdictArabic = 'إمكانات قوية (Strong Potential)';
+    else if (scoreVal >= 40) quickVerdictArabic = 'واعدة ولكن غير مثبتة (Promising but Unproven)';
+    else if (scoreVal >= 20) quickVerdictArabic = 'عالية المخاطر (High Risk)';
+    else quickVerdictArabic = 'لا ينصح بها (Not Recommended)';
+
+    let confidenceLevelEn = overallConfidenceLabel === 'عالية' ? 'High' : overallConfidenceLabel === 'متوسطة' ? 'Medium' : 'Low';
+
+    const qoomScoreText = `<strong>Qoom Score:</strong> <span class="num-ltr">${scoreVal}/100</span><br/><br/>
+<strong>Confidence Level:</strong> ${confidenceLevelEn} (${overallConfidenceLabel})<br/><br/>
+<strong>Quick Verdict:</strong> ${quickVerdictArabic}<br/><br/>
+<strong>Reasoning:</strong><br/>
+${qoomScoreReasoning}`;
+
     const topPriority = actionItems.find((p: any) => p.priority === 'HIGH') || actionItems[0] || { text: 'إجراء دراسة جدوى أولية.' };
     const synthesisSummary = `الفكرة واعدة لكنها تحتاج دراسة سوقية وتقنية أعمق.
 أكبر تحدٍ: ${biggestChallenge}.
-أول خطوة: ${topPriority.text}`.trim();
+أول خطوة: ${topPriority.text}
+
+<div class="mt-6 p-5 bg-[#0a0f16] border border-cyan-500/20 rounded-2xl text-sm leading-relaxed text-zinc-300 shadow-[0_0_20px_rgba(6,182,212,0.05)]">
+  ${qoomScoreText}
+</div>`.trim();
 
     // Build the consolidated V3.0 JSON report
     const ideaTitle = scanRecord?.project?.title || 'عنوان الفكرة';
