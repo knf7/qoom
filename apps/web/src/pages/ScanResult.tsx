@@ -172,7 +172,7 @@ ${oldDescription}
     // Scan progress is now driven purely by real-time WebSocket events.
     // However, if the scan hangs for more than 3 minutes, show a failure timeout.
     let timeoutId: NodeJS.Timeout;
-    if (scanning && scan && (scan.status === 'PENDING' || scan.status === 'PROCESSING')) {
+    if (isScanning && scan && (scan.status === 'PENDING' || scan.status === 'PROCESSING')) {
       timeoutId = setTimeout(() => {
         setError('تعذر إكمال الفحص بسبب ضغط على السيرفر. يرجى إعادة المحاولة لاحقاً.');
         setScanning(false);
@@ -185,7 +185,7 @@ ${oldDescription}
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [scanning, scan?.status]);
+  }, [isScanning, scan?.status]);
 
   const fetchScanSnapshot = async () => {
     try {
