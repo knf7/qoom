@@ -905,7 +905,7 @@ ${oldDescription}
                         </span>
                         <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-3">
                           <Compass size={22} className="text-cyan-400 shrink-0" />
-                          <span>تحليل المشكلة المستنتجة (Problem Inference)</span>
+                          <span>تحليل المشكلة المستنتجة</span>
                         </h2>
                       </div>
 

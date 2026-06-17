@@ -431,11 +431,11 @@ ${projectDescription}
 
     let confidenceLevelEn = overallConfidenceLabel === 'عالية' ? 'High' : overallConfidenceLabel === 'متوسطة' ? 'Medium' : 'Low';
 
-    const qoomScoreText = `<strong>Qoom Score:</strong> <span class="num-ltr">${scoreVal}/100</span><br/><br/>
-<strong>Confidence Level:</strong> ${confidenceLevelEn} (${overallConfidenceLabel})<br/><br/>
-<strong>Quick Verdict:</strong> ${quickVerdictArabic}<br/><br/>
-<strong>Reasoning:</strong><br/>
-${qoomScoreReasoning}`;
+    const qoomScoreText = `<div dir="rtl"><strong>درجة قُوم (Qoom Score):</strong> <span class="num-ltr">${scoreVal}/100</span><br/><br/>
+<strong>مستوى الثقة:</strong> ${overallConfidenceLabel}<br/><br/>
+<strong>القرار السريع:</strong> ${quickVerdictArabic}<br/><br/>
+<strong>سبب التقييم:</strong><br/>
+${qoomScoreReasoning}</div>`;
 
     const topPriority = actionItems.find((p: any) => p.priority === 'HIGH') || actionItems[0] || { text: 'إجراء دراسة جدوى أولية.' };
     const synthesisSummary = `الفكرة واعدة لكنها تحتاج دراسة سوقية وتقنية أعمق.
