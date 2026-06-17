@@ -330,7 +330,7 @@ export default function WarRoom({ scan, onReplay, onBackToDashboard }: WarRoomPr
               {t('scan.guidanceTitle')}
             </h3>
             <p 
-              dangerouslySetInnerHTML={renderCleanText(scan.recommendation)}
+              dangerouslySetInnerHTML={{ __html: scan.recommendation }}
               className="text-xs text-slate-400 leading-relaxed font-sans text-left"
             />
           </div>

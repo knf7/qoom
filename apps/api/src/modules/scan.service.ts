@@ -147,44 +147,42 @@ export class ScanService {
       throw new BadRequestException('الموقع مزدحم حالياً بطلبات فحص أخرى. يرجى المحاولة بعد قليل.');
     }
 
-    // 2. User Scan Limit & Daily Renewal Logic
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { scanCredits: true },
+      select: { scanCredits: true, lastCreditResetAt: true },
     });
 
     if (!user) {
       throw new NotFoundException('User profile not found.');
     }
 
-    let usePaidCredit = false;
-    if (user.scanCredits > 0) {
-      usePaidCredit = true;
-    } else {
-      const totalUserScans = await this.prisma.scan.count({
-        where: {
-          project: {
-            userId: userId
-          },
-          status: { not: 'FAILED' }
-        }
+    const now = new Date();
+    const lastReset = user.lastCreditResetAt || new Date(0);
+    
+    const isSameDayUTC = now.getUTCFullYear() === lastReset.getUTCFullYear() &&
+                         now.getUTCMonth() === lastReset.getUTCMonth() &&
+                         now.getUTCDate() === lastReset.getUTCDate();
+
+    let availableCredits = user.scanCredits;
+
+    // Reset credits if it's a new UTC day
+    if (!isSameDayUTC) {
+      availableCredits = 2;
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { scanCredits: 2, lastCreditResetAt: now }
       });
+      this.logger.log(`Daily credits reset for user ${userId}.`);
+    }
 
-      if (totalUserScans >= 2) {
-        // If user has used their 2 initial free scans, they get 1 scan per 24 hours
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const scansInLast24Hours = await this.prisma.scan.count({
-          where: {
-            project: { userId },
-            createdAt: { gte: oneDayAgo },
-            status: { not: 'FAILED' }
-          }
-        });
-
-        if (scansInLast24Hours >= 1) {
-          throw new BadRequestException('لقد استنفدت التحليلات المجانية المتاحة لك. يتجدد رصيدك بمعدل تحليل واحد يومياً، يرجى المحاولة لاحقاً بعد مرور 24 ساعة من آخر تحليل أو شراء رصيد إضافي.');
-        }
-      }
+    if (availableCredits <= 0) {
+      const tomorrow = new Date(now);
+      tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+      tomorrow.setUTCHours(0, 0, 0, 0);
+      const diffMs = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      throw new BadRequestException(`لقد استنفدت الفرص المتاحة لك لليوم. يتجدد رصيدك (فحصين مجانيين) تلقائياً عند منتصف الليل (بعد ${hours} ساعة و ${mins} دقيقة).`);
     }
 
     // 2. Proactive security check: run PromptFirewallService unified pipeline (Heuristics -> AI scoring -> Policy engine)
@@ -255,7 +253,7 @@ export class ScanService {
           submittedDescription: sanitizedDescription,
           projectId: project.id,
           projectTitle: project.title,
-          deductedCredit: usePaidCredit,
+          deductedCredit: true,
         }),
       },
     });
@@ -281,13 +279,12 @@ export class ScanService {
       throw queueErr;
     }
 
-    if (usePaidCredit) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { scanCredits: { decrement: 1 } },
-      });
-      this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${user.scanCredits - 1}`);
-    }
+    // Deduct 1 credit for this scan
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { scanCredits: { decrement: 1 } },
+    });
+    this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${availableCredits - 1}`);
 
     return {
       scanId: scan.id,
@@ -428,5 +425,39 @@ export class ScanService {
       this.logger.error(`Failed to submit support request: ${err.message}`);
       return { success: false, message: 'Failed to deliver support email.' };
     }
+  }
+
+  async confirmProblemInference(userId: string, scanId: string): Promise<any> {
+    const scan = await this.prisma.scan.findUnique({
+      where: { id: scanId },
+      include: { project: true }
+    });
+
+    if (!scan) {
+      throw new NotFoundException('Scan not found.');
+    }
+
+    if (scan.project.userId !== userId) {
+      throw new ForbiddenException('Unauthorized.');
+    }
+
+    let payload: any = {};
+    try {
+      payload = scan.payload ? JSON.parse(String(scan.payload)) : {};
+    } catch (e) {
+      payload = {};
+    }
+
+    if (!payload.problemInference) {
+      payload.problemInference = {};
+    }
+    payload.problemInference.confirmed = true;
+
+    await this.prisma.scan.update({
+      where: { id: scanId },
+      data: { payload: JSON.stringify(payload) }
+    });
+
+    return { success: true, message: 'Problem inference confirmed.' };
   }
 }

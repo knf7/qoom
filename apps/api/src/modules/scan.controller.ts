@@ -110,6 +110,15 @@ export class ScanController {
     return this.scanService.getPassportCredentials(scanId);
   }
 
+  @Patch('scan/:id/problem-inference')
+  @UseGuards(JwtAuthGuard)
+  async confirmProblemInference(
+    @CurrentUser() user: any,
+    @Param('id') scanId: string
+  ) {
+    return this.scanService.confirmProblemInference(user.id, scanId);
+  }
+
   @Post('support/request')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

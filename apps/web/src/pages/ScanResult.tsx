@@ -42,9 +42,15 @@ export default function ScanResult() {
   
   // New state to hold the transition from War Room to Final Report
   const [showFinalReport, setShowFinalReport] = useState(false);
+  const [feedbackConfirmed, setFeedbackConfirmed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (scan?.payload?.problemInference?.confirmed) {
+      setFeedbackConfirmed(true);
+    }
+  }, [scan?.payload?.problemInference?.confirmed]);
   
   // Interactive problem feedback states
-  const [feedbackConfirmed, setFeedbackConfirmed] = useState<boolean | null>(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [reSubmitLoading, setReSubmitLoading] = useState(false);
   const [reSubmitError, setReSubmitError] = useState<string | null>(null);
@@ -878,7 +884,7 @@ ${oldDescription}
 
                 {/* Problem Inference Section */}
                 {payload.problemInference && (
-                  <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right">
+                  <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right" dir="rtl">
                     <div className="flex flex-col gap-6">
                       <div className="flex justify-between items-center pb-4 border-b border-white/5">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
@@ -930,10 +936,13 @@ ${oldDescription}
                               <span className="text-xs text-zinc-300 font-bold">هل المشكلة المستنتجة صحيحة وتطابق نيتك؟</span>
                               <div className="flex gap-3">
                                 <button
-                                  onClick={() => setFeedbackConfirmed(true)}
+                                  onClick={async () => {
+                                    setFeedbackConfirmed(true);
+                                    try { await apiClient(`/scan/${scanId}/problem-inference`, { method: 'PATCH' }); } catch(e) {}
+                                  }}
                                   className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-full transition-all hover:scale-105"
                                 >
-                                  نعم صح ✓
+                                  نعم صح ✅
                                 </button>
                                 <button
                                   onClick={() => setFeedbackConfirmed(false)}
