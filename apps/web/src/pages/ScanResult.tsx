@@ -1310,9 +1310,10 @@ ${oldDescription}
                     <BrainCircuit size={22} className="text-cyan-400 shrink-0" />
                     <span>{cleanTitle(synthesis.title) || 'التوليفة الاستراتيجية'}</span>
                   </h2>
-                  <p className="text-zinc-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap mb-8 bg-black/30 p-6 rounded-2xl border border-white/5">
-                    {synthesis.summary || synthesis.content}
-                  </p>
+                  <div 
+                    className="text-zinc-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap mb-8 bg-black/30 p-6 rounded-2xl border border-white/5"
+                    dangerouslySetInnerHTML={{ __html: synthesis.summary || synthesis.content }}
+                  />
                   
                   <div className="w-full h-px bg-white/10 mb-8" />
                   
