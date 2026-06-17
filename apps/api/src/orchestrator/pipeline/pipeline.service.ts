@@ -388,39 +388,35 @@ ${projectDescription}
       .map((a: any) => `${a.agentName}: ${a.sections.analysis.content}`);
 
     let biggestChallenge = 'المخاطر التنظيمية والتشغيلية';
-    if (activeAnalyses.length > 0) {
-      try {
-        const analysesConcat = activeAnalyses.join('\n');
-        const systemPrompt = `أنت QOOM — محلل ريادي ذكي. اقرأ تحليلات الوكلاء التالية للفكرة واستخلص أكبر تحدٍ منفرد وعقبة رئيسية تواجه الفكرة في جملة واحدة قصيرة جداً (80 حرفاً كحد أقصى) باللغة العربية.
-قواعد صارمة:
-- ابدأ بالتحدي مباشرة بدون مقدمات (مثل: "المخاطر التنظيمية (CMA)" أو "تكلفة بناء النموذج الأولي" أو "صعوبة إقناع المستخدمين").
-- لا تكتب "أكبر تحد هو" أو "التحدي الرئيسي هو".
-- الحد الأقصى للطول هو 80 حرفاً.`;
-
-        const prompt = `اقرأ هذه التحليلات واستخلص أكبر تحدٍ في سطر واحد قصير:\n${analysesConcat}`;
-        const result = await this.gemini.queryModel(systemPrompt, prompt, 3, undefined, 'FLASH');
-        if (result && result.trim()) {
-          biggestChallenge = result.trim().replace(/[.\n]/g, '');
-        }
-      } catch (e) {
-        this.logger.error('Failed to extract biggest challenge via Gemini', e);
-      }
-    }
-
     let qoomScoreReasoning = 'درجة التقييم تعكس التوازن بين الفرص المتاحة والمخاطر المحتملة بناءً على المعطيات الحالية.';
+    
     if (activeAnalyses.length > 0) {
       try {
         const analysesConcat = activeAnalyses.join('\n');
-        const systemPromptReasoning = `أنت QOOM. اقرأ تحليلات الوكلاء التالية وأعطني تبريراً (Reasoning) من سطر إلى سطرين يشرح سبب الدرجة النهائية للمشروع (${overallScore !== null ? overallScore : 0}/100).
-لا تعتمد على الحدس أو التفاؤل، واعتمد على الأدلة الموجودة في التحليل.
-يجب أن يكون الرد باللغة العربية، سطر أو سطرين فقط.`;
+        const systemPromptSynthesis = `أنت QOOM — محلل ريادي ذكي. اقرأ تحليلات الوكلاء التالية للفكرة واستخلص:
+1. أكبر تحدٍ منفرد وعقبة رئيسية تواجه الفكرة في جملة واحدة قصيرة جداً (80 حرفاً كحد أقصى) باللغة العربية.
+2. تبريراً (Reasoning) من سطر إلى سطرين يشرح سبب الدرجة النهائية للمشروع (${overallScore !== null ? overallScore : 0}/100) بناءً على الأدلة المتاحة، دون حدس أو تفاؤل.
 
-        const resultReasoning = await this.gemini.queryModel(systemPromptReasoning, analysesConcat, 3, undefined, 'FLASH');
-        if (resultReasoning && resultReasoning.trim()) {
-          qoomScoreReasoning = resultReasoning.trim();
+يجب أن تعيد الرد بصيغة JSON فقط، مطابق لهذا الهيكل بالضبط:
+{
+  "biggest_challenge": "التحدي الأكبر هنا",
+  "qoom_score_reasoning": "التبرير هنا"
+}`;
+
+        const prompt = `اقرأ هذه التحليلات واستخلص المطلوب بـ JSON:\n${analysesConcat}`;
+        const result = await this.gemini.queryModel(systemPromptSynthesis, prompt, 3, undefined, 'FLASH');
+        
+        if (result && result.trim()) {
+          const parsedResult = JSON.parse(result);
+          if (parsedResult.biggest_challenge) {
+            biggestChallenge = parsedResult.biggest_challenge.replace(/[.\n]/g, '');
+          }
+          if (parsedResult.qoom_score_reasoning) {
+            qoomScoreReasoning = parsedResult.qoom_score_reasoning.trim();
+          }
         }
       } catch (e) {
-        this.logger.error('Failed to extract reasoning via Gemini', e);
+        this.logger.error('Failed to extract synthesis data via AI', e);
       }
     }
 
