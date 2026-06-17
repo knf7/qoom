@@ -249,6 +249,7 @@ export default function TopNav() {
                       <div className="text-center pt-2 border-t border-white/5">
                         <button 
                           onClick={() => {
+                            setSupportMessage('أرغب في زيادة رصيد التحليلات الخاص بي بمقدار 10 نقاط.');
                             setIsProfileOpen(false);
                             setIsSupportOpen(true);
                           }}
@@ -256,6 +257,17 @@ export default function TopNav() {
                         >
                           <Mail size={10} />
                           طلب زيادة رصيد مجاني / دعم فني
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setSupportMessage('أرغب في إلغاء اشتراكي المسبق في باقة قُوم، وإيقاف أي تجديد تلقائي.');
+                            setIsProfileOpen(false);
+                            setIsSupportOpen(true);
+                          }}
+                          className="w-full text-center text-[10px] text-rose-400/80 hover:text-rose-300 transition-colors pointer-events-auto font-bold flex items-center justify-center gap-1.5 py-1 mt-1 border-t border-rose-500/10 pt-2"
+                        >
+                          <X size={10} />
+                          طلب إلغاء اشتراك مدفوع
                         </button>
                       </div>
                     </div>
