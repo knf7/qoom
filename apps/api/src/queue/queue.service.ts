@@ -267,6 +267,14 @@ export class QueueService implements OnModuleInit {
 
       let finalStatus = orchestratorResult.status || 'COMPLETED';
 
+      const mergedPayload: any = { ...existingPayload, ...updateData.payload };
+      if (existingPayload.problemInference && updateData.payload.problemInference) {
+        mergedPayload.problemInference = {
+          ...updateData.payload.problemInference,
+          confirmed: existingPayload.problemInference.confirmed !== undefined ? existingPayload.problemInference.confirmed : updateData.payload.problemInference.confirmed
+        };
+      }
+
       await tx.scan.update({
         where: { id: scanId },
         data: {
@@ -277,7 +285,7 @@ export class QueueService implements OnModuleInit {
           confidence: updateData.confidence ?? 0,
           summary: updateData.summary,
           recommendation: updateData.recommendation,
-          payload: JSON.stringify({ ...existingPayload, ...updateData.payload }),
+          payload: JSON.stringify(mergedPayload),
           errors: orchestratorResult.errors ? JSON.stringify(orchestratorResult.errors) : null,
           missingEvidence: null,
           completedAt: new Date()

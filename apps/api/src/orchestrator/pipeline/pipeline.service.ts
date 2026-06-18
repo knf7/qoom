@@ -423,11 +423,11 @@ ${projectDescription}
     const scoreVal = overallScore !== null ? overallScore : 0;
     let quickVerdictArabic = 'واعدة ولكن غير مثبتة';
     if (noneCount === 5) quickVerdictArabic = 'لا ينصح بها';
-    else if (scoreVal >= 80) quickVerdictArabic = 'فرصة ممتازة (Excellent Opportunity)';
-    else if (scoreVal >= 60) quickVerdictArabic = 'إمكانات قوية (Strong Potential)';
-    else if (scoreVal >= 40) quickVerdictArabic = 'واعدة ولكن غير مثبتة (Promising but Unproven)';
-    else if (scoreVal >= 20) quickVerdictArabic = 'عالية المخاطر (High Risk)';
-    else quickVerdictArabic = 'لا ينصح بها (Not Recommended)';
+    else if (scoreVal >= 80) quickVerdictArabic = 'فرصة ممتازة';
+    else if (scoreVal >= 60) quickVerdictArabic = 'إمكانات قوية';
+    else if (scoreVal >= 40) quickVerdictArabic = 'واعدة ولكن غير مثبتة';
+    else if (scoreVal >= 20) quickVerdictArabic = 'عالية المخاطر';
+    else quickVerdictArabic = 'لا ينصح بها';
 
     let confidenceLevelEn = overallConfidenceLabel === 'عالية' ? 'High' : overallConfidenceLabel === 'متوسطة' ? 'Medium' : 'Low';
 

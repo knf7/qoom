@@ -96,11 +96,11 @@ ${oldDescription}
   };
 
   const agentNamesAr: Record<string, string> = {
-    'MarketAgent': 'دراسة السوق والطلب (MarketAgent)',
-    'CompetitionAgent': 'تحليل المنافسة والبدائل (CompetitionAgent)',
-    'MonetizationAgent': 'نموذج الإيرادات والربحية (MonetizationAgent)',
-    'FeasibilityAgent': 'الجدوى الفنية والتقنية (FeasibilityAgent)',
-    'RiskAgent': 'إدارة المخاطر والعقبات (RiskAgent)'
+    'MarketAgent': 'دراسة السوق والطلب',
+    'CompetitionAgent': 'تحليل المنافسة والبدائل',
+    'MonetizationAgent': 'نموذج الإيرادات والربحية',
+    'FeasibilityAgent': 'الجدوى الفنية والتقنية',
+    'RiskAgent': 'إدارة المخاطر والعقبات'
   };
 
   const statusLabels: Record<string, { text: string, color: string, bg: string, border: string }> = {
@@ -195,7 +195,7 @@ ${oldDescription}
 
   const fetchScanSnapshot = async () => {
     try {
-      const data = await apiClient(`/scan/${scanId}`);
+      const data = await apiClient(`/scan/${scanId}?t=${Date.now()}`);
 
       setScan(data);
       setLoading(false);
@@ -548,7 +548,7 @@ ${oldDescription}
                 
                 <div className="h-40 overflow-y-auto font-mono text-xs flex flex-col gap-1 pr-2 scrollbar-hide" ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}>
                   {terminalLogs.length === 0 ? (
-                    <div className="text-zinc-600 animate-pulse">[SYSTEM] Waiting for orchestrator initialization...</div>
+                    <div className="text-zinc-600 animate-pulse">[SYSTEM] جاري تهيئة النظام والوكلاء الذكاء الاصطناعي...</div>
                   ) : (
                     terminalLogs.map((log) => (
                       <div key={log.id} className="flex gap-3 text-zinc-300">
@@ -939,8 +939,15 @@ ${oldDescription}
                               <div className="flex gap-3">
                                 <button
                                   onClick={async () => {
-                                    setFeedbackConfirmed(true);
-                                    try { await apiClient(`/scan/${scanId}/problem-inference`, { method: 'PATCH' }); } catch(e) {}
+                                    try {
+                                      await apiClient(`/scan/${scanId}/problem-inference`, { method: 'PATCH' });
+                                      setFeedbackConfirmed(true);
+                                    } catch (err: any) {
+                                      console.error('Failed to confirm problem inference:', err);
+                                      // Allow it to reflect visually if they just want to move on, 
+                                      // but normally you might show a toast error here.
+                                      setFeedbackConfirmed(true);
+                                    }
                                   }}
                                   className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-full transition-all hover:scale-105"
                                 >
@@ -1041,7 +1048,7 @@ ${oldDescription}
                   <div className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden mb-10 text-right" dir="rtl">
                     <h2 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center justify-start gap-2.5">
                       <Sparkles size={22} className="text-cyan-400 shrink-0" />
-                      <span>الفكرة المُصقلة (Refined Venture DNA)</span>
+                      <span>الفكرة المُصقلة</span>
                     </h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

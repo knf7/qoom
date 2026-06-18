@@ -48,7 +48,7 @@ export default function App() {
             <Suspense fallback={
               <div className="w-full flex-1 flex flex-col items-center justify-center p-20 text-zinc-500">
                 <Loader2 size={32} className="animate-spin text-cyan-500" />
-                <span className="mt-4 text-xs font-bold font-mono">Loading module...</span>
+                <span className="mt-4 text-xs font-bold font-mono">جاري التحميل...</span>
               </div>
             }>
               <Routes>

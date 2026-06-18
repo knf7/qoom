@@ -33,7 +33,6 @@ export async function apiClient(endpoint: string, options: FetchOptions = {}) {
   const config: RequestInit = {
     ...options,
     headers,
-    cache: 'no-store', // Prevent browser from caching GET requests to ensure fresh data
   };
 
   if (options.data) {
