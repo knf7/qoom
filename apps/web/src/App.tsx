@@ -4,6 +4,7 @@ import TopNav from './components/TopNav';
 import { useI18n } from './utils/i18n';
 import { useStore } from './store/useStore';
 import { Loader2 } from 'lucide-react';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Auth = lazy(() => import('./pages/Auth'));
@@ -76,6 +77,7 @@ export default function App() {
         </footer>
         </div>
       </div>
+      <VercelAnalytics />
     </Router>
   );
 }

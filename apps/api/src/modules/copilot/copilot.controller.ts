@@ -9,8 +9,8 @@ const AnalyzeIdeaSchema = z.object({
 
 const FinalizeIdeaSchema = z.object({
   rawIdea: z.string().max(3000),
-  assumptions: z.array(z.string()).max(20).optional(),
-  answers: z.record(z.string(), z.string()).optional(),
+  assumptions: z.array(z.string()).max(20).optional().default([]),
+  answers: z.record(z.string(), z.string()).optional().default({}),
 });
 
 @Controller('copilot')

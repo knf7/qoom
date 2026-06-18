@@ -260,7 +260,7 @@ export class QueueService implements OnModuleInit {
         where: { id: scanId },
         select: { payload: true }
       });
-      let existingPayload = {};
+      let existingPayload: any = {};
       try {
         existingPayload = existingScan?.payload ? JSON.parse(String(existingScan.payload)) : {};
       } catch(e) {}

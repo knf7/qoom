@@ -12,6 +12,7 @@
     "@qoom/types": "*",
     "@qoom/ui": "*",
     "@tanstack/react-query": "^5.22.2",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "dompurify": "^3.0.9",
     "framer-motion": "^11.0.8",
