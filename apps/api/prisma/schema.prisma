@@ -21,8 +21,6 @@ model User {
   deletedAt DateTime?
   projects  Project[]
   auditLogs AuditLog[]
-
-  @@index([email])
 }
 
 model Project {

@@ -811,7 +811,7 @@ ${oldDescription}
                          <Sparkles className="text-cyan-400 shrink-0" size={28} />
                          <span>{meta.ideaTitle}</span>
                        </h1>
-                       <p className="text-zinc-400 text-sm md:text-base mt-2 font-medium leading-relaxed max-w-2xl text-right">
+                       <p className="text-zinc-300 text-sm md:text-base mt-2 font-normal leading-relaxed max-w-3xl text-right whitespace-pre-wrap">
                          {meta.ideaSubtitle}
                        </p>
                      </div>
@@ -833,8 +833,8 @@ ${oldDescription}
 
                   <div className="w-full h-px bg-white/10 mb-8" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-right">
-                    <div className="bg-black/35 p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-right">
+                    <div className="bg-black/35 p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-cyan-500/30 transition-all duration-300 hover:scale-[1.02]">
                       <span className="text-xs text-zinc-500 mb-1">التقدم الإجمالي للوكلاء</span>
                       <span className="text-lg font-bold text-white mb-2">
                         {meta.progressBar.full + meta.progressBar.partial}/5 وكلاء
@@ -847,27 +847,16 @@ ${oldDescription}
                       </div>
                     </div>
 
-                    <div className="bg-black/35 p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
-                      <span className="text-xs text-zinc-500 block mb-1">الدرجة الكلية للتقييم</span>
+                    <div className="bg-gradient-to-br from-cyan-500/10 to-emerald-500/5 p-5 rounded-2xl border border-cyan-500/20 flex flex-col justify-between hover:border-cyan-500/50 transition-all duration-300 hover:scale-[1.02] shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+                      <span className="text-xs text-cyan-400 block mb-1 font-bold">تقييم الابتكار</span>
                       {executiveSummary.score !== null && executiveSummary.score !== undefined ? (
-                        <span className="text-3xl font-black text-white">{executiveSummary.score}/100</span>
+                        <div className="flex items-baseline justify-end gap-1.5">
+                          <span className="text-4xl font-black text-white">{executiveSummary.score}</span>
+                          <span className="text-sm font-bold text-cyan-500">/100</span>
+                        </div>
                       ) : (
                         <span className="text-base font-bold text-zinc-400">تحليل استشاري</span>
                       )}
-                    </div>
-
-                    <div className="bg-black/35 p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
-                      <span className="text-xs text-zinc-500 block mb-1">مستوى الثقة بالبيانات</span>
-                      <div className="flex items-baseline justify-end gap-1.5">
-                        <span className={`text-[10px] font-bold ${
-                          executiveSummary.confidenceColor === 'green' ? 'text-emerald-400' :
-                          executiveSummary.confidenceColor === 'amber' ? 'text-amber-400' :
-                          'text-rose-400'
-                        }`}>({executiveSummary.confidenceLabel || 'منخفضة'})</span>
-                        <span className="text-3xl font-black text-white">
-                          {executiveSummary.confidence}%
-                        </span>
-                      </div>
                     </div>
                   </div>
 
@@ -933,74 +922,75 @@ ${oldDescription}
                           </div>
 
                           {/* Interaction logic */}
-                          {feedbackConfirmed === null ? (
-                            <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-4 bg-white/5 p-5 rounded-2xl border border-white/10">
-                              <span className="text-xs text-zinc-300 font-bold">هل المشكلة المستنتجة صحيحة وتطابق نيتك؟</span>
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={async () => {
-                                    try {
-                                      await apiClient(`/scan/${scanId}/problem-inference`, { method: 'PATCH' });
-                                      setFeedbackConfirmed(true);
-                                    } catch (err: any) {
-                                      console.error('Failed to confirm problem inference:', err);
-                                      // Allow it to reflect visually if they just want to move on, 
-                                      // but normally you might show a toast error here.
-                                      setFeedbackConfirmed(true);
-                                    }
-                                  }}
-                                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-full transition-all hover:scale-105"
-                                >
-                                  نعم صح ✅
-                                </button>
-                                <button
-                                  onClick={() => setFeedbackConfirmed(false)}
-                                  className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold rounded-full transition-all hover:scale-105"
-                                >
-                                  لا خطأ ✗
-                                </button>
+                          <div className="min-h-[160px] flex flex-col justify-center">
+                            {feedbackConfirmed === null ? (
+                              <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-4 bg-white/5 p-5 rounded-2xl border border-white/10">
+                                <span className="text-xs text-zinc-300 font-bold">هل المشكلة المستنتجة صحيحة وتطابق نيتك؟</span>
+                                <div className="flex gap-3">
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        await apiClient(`/scan/${scanId}/problem-inference`, { method: 'PATCH' });
+                                        setFeedbackConfirmed(true);
+                                      } catch (err: any) {
+                                        console.error('Failed to confirm problem inference:', err);
+                                        setFeedbackConfirmed(true);
+                                      }
+                                    }}
+                                    className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold rounded-full transition-all hover:scale-105"
+                                  >
+                                    نعم صح
+                                  </button>
+                                  <button
+                                    onClick={() => setFeedbackConfirmed(false)}
+                                    className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold rounded-full transition-all hover:scale-105"
+                                  >
+                                    لا خطأ
+                                  </button>
+                                </div>
                               </div>
-                            </div>
                           ) : feedbackConfirmed === true ? (
                             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-2xl text-center">
-                              ✅ شكرًا لتأكيدك! المشكلة المستنتجة صحيحة.
+                              شكرًا لتأكيدك! المشكلة المستنتجة صحيحة.
                             </div>
-                          ) : (
-                            <form onSubmit={(e) => handleReSubmitProblem(e, scan.projectId)} className="space-y-3 bg-[#150e0f] p-5 rounded-2xl border border-rose-500/15">
-                              <label className="text-xs text-rose-300 font-bold block">
-                                ❓ ما هي المشكلة الفعلية التي تسعى لحلها بمشروعك؟
-                              </label>
-                              <textarea
-                                value={feedbackText}
-                                onChange={(e) => setFeedbackText(e.target.value)}
-                                placeholder="اكتب المشكلة الصحيحة بالتفصيل هنا..."
-                                className="w-full h-20 bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all resize-none mt-2"
-                                required
-                              />
-                              {reSubmitError && (
-                                <div className="text-xs text-rose-400 p-2 bg-rose-500/5 border border-rose-500/10 rounded-lg">
-                                  {reSubmitError}
+                            ) : (
+                              <form onSubmit={(e) => handleReSubmitProblem(e, scan.projectId)} className="space-y-3 bg-[#150e0f] p-5 rounded-2xl border border-rose-500/15">
+                                <label className="text-xs text-rose-300 font-bold block">
+                                  ما هي المشكلة الفعلية التي تسعى لحلها بمشروعك؟
+                                </label>
+                                <textarea
+                                  value={feedbackText}
+                                  onChange={(e) => setFeedbackText(e.target.value)}
+                                  placeholder="اكتب المشكلة الصحيحة بالتفصيل هنا..."
+                                  className="w-full h-20 bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all resize-none mt-2"
+                                  required
+                                  dir="rtl"
+                                />
+                                {reSubmitError && (
+                                  <div className="text-xs text-rose-400 p-2 bg-rose-500/5 border border-rose-500/10 rounded-lg">
+                                    {reSubmitError}
+                                  </div>
+                                )}
+                                <div className="flex justify-end gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setFeedbackConfirmed(null)}
+                                    className="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-700"
+                                  >
+                                    إلغاء
+                                  </button>
+                                  <button
+                                    type="submit"
+                                    disabled={reSubmitLoading || !feedbackText.trim()}
+                                    className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold rounded-xl flex items-center gap-2 disabled:opacity-50"
+                                  >
+                                    {reSubmitLoading && <Loader2 size={12} className="animate-spin" />}
+                                    تعديل المشكلة وإعادة الفحص
+                                  </button>
                                 </div>
-                              )}
-                              <div className="flex justify-end gap-2 mt-2">
-                                <button
-                                  type="button"
-                                  onClick={() => setFeedbackConfirmed(null)}
-                                  className="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-700"
-                                >
-                                  إلغاء
-                                </button>
-                                <button
-                                  type="submit"
-                                  disabled={reSubmitLoading || !feedbackText.trim()}
-                                  className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-white text-xs font-bold rounded-xl flex items-center gap-2 disabled:opacity-50"
-                                >
-                                  {reSubmitLoading && <Loader2 size={12} className="animate-spin" />}
-                                  تعديل المشكلة وإعادة الفحص
-                                </button>
-                              </div>
-                            </form>
-                          )}
+                              </form>
+                            )}
+                          </div>
                         </div>
                       )}
 
@@ -1008,13 +998,13 @@ ${oldDescription}
                         <div className="space-y-4">
                           <div className="bg-rose-500/5 p-5 rounded-2xl border border-rose-500/10">
                             <p className="text-sm text-rose-300 font-bold leading-relaxed">
-                              {payload.problemInference.note || '❓ لم نتمكن من تحديد المشكلة بوضوح من الإدخال الحالي.'}
+                              {payload.problemInference.note || 'لم نتمكن من تحديد المشكلة بوضوح من الإدخال الحالي.'}
                             </p>
                           </div>
 
                           <form onSubmit={(e) => handleReSubmitProblem(e, scan.projectId)} className="space-y-3 bg-[#150e0f] p-5 rounded-2xl border border-rose-500/15">
                             <label className="text-xs text-rose-300 font-bold block">
-                              ❓ يرجى الإجابة عن السؤال لتصحيح الفحص:
+                              يرجى الإجابة عن السؤال لتصحيح الفحص:
                             </label>
                             <textarea
                               value={feedbackText}
@@ -1022,6 +1012,7 @@ ${oldDescription}
                               placeholder="اكتب ردك أو المشكلة هنا..."
                               className="w-full h-20 bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all resize-none mt-2"
                               required
+                              dir="rtl"
                             />
                             {reSubmitError && (
                               <div className="text-xs text-rose-400 p-2 bg-rose-500/5 border border-rose-500/10 rounded-lg">
@@ -1112,12 +1103,10 @@ ${oldDescription}
                     const colorClass = statusColors[agent.statusColor || 'amber'] || 'bg-amber-500/10 text-amber-400 border-amber-500/20';
 
                     return (
-                      <motion.div
+                      <div
                         key={agent.agentId || idx}
-                        initial={{ opacity: 0, y: 25 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden flex flex-col gap-6 text-right"
+                        className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both glass rounded-[2rem] p-6 md:p-8 border border-white/10 bg-[#111] relative overflow-hidden flex flex-col gap-6 text-right hover:border-white/30 hover:-translate-y-1 transition-all shadow-lg hover:shadow-cyan-500/10"
+                        style={{ animationDelay: `${idx * 100}ms` }}
                       >
                         <div className="flex justify-between items-center pb-4 border-b border-white/5">
                           <div className="flex items-center gap-3">
@@ -1126,24 +1115,35 @@ ${oldDescription}
                               <span>{agentNamesAr[agent.agentId] || agent.agentName}</span>
                             </h3>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${colorClass}`}>
-                            {agent.statusLabel || (agent.status === 'FULL' ? 'تحليل كامل' : agent.status === 'PARTIAL' ? 'تحليل جزئي' : 'لا يوجد بيانات')}
-                          </span>
                         </div>
-                        
-                        <div className="text-xs text-zinc-400">
-                          ثقة الوكيل: <span className={`font-bold ${
-                            agent.confidenceColor === 'green' ? 'text-emerald-400' :
-                            agent.confidenceColor === 'amber' ? 'text-amber-400' :
-                            'text-rose-400'
-                          }`}>{agent.confidence}% ({agent.confidenceLabel || (agent.confidence >= 70 ? 'عالية' : agent.confidence >= 40 ? 'متوسطة' : 'منخفضة')})</span>
-                        </div>
-                        
-                        <div className="w-full h-px bg-white/10" />
                         
                         <div className="space-y-6">
-                          {agent.sections?.known?.items?.length > 0 && (
+                          {agent.sections?.analysis?.content && (
                             <div>
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
+                                <Sparkles size={14} className="text-cyan-400" />
+                                <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
+                              </div>
+                              <p className="text-xs md:text-sm text-zinc-400 leading-relaxed bg-[#080808] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
+                                {agent.sections.analysis.content}
+                              </p>
+                            </div>
+                          )}
+
+                          {agent.sections?.recommendation?.content && (
+                            <div className="pt-4 border-t border-white/5">
+                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
+                                <Zap size={14} className="text-purple-400" />
+                                <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
+                              </div>
+                              <p className="text-xs md:text-sm text-white font-bold leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5">
+                                {agent.sections.recommendation.content}
+                              </p>
+                            </div>
+                          )}
+
+                          {agent.sections?.known?.items?.length > 0 && (
+                            <div className="pt-4 border-t border-white/5">
                               <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-2">
                                 <CheckCircle2 size={14} className="text-emerald-400" />
                                 <span>{cleanTitle(agent.sections.known.title) || 'ما أعرفه'}</span>
@@ -1177,34 +1177,20 @@ ${oldDescription}
                               </ul>
                             </div>
                           )}
-
-                          {agent.sections?.analysis?.content && (
-                            <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
-                                <Sparkles size={14} className="text-cyan-400" />
-                                <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
-                              </div>
-                              <p className="text-xs md:text-sm text-zinc-400 leading-relaxed bg-[#080808] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
-                                {agent.sections.analysis.content}
-                              </p>
-                            </div>
-                          )}
-
-                          {agent.sections?.recommendation?.content && (
-                            <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
-                                <Zap size={14} className="text-purple-400" />
-                                <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
-                              </div>
-                              <p className="text-xs md:text-sm text-white font-bold leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5">
-                                {agent.sections.recommendation.content}
-                              </p>
-                            </div>
-                          )}
                         </div>
 
+                        <div className="pt-4 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="text-xs text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 inline-block">
+                            <span className="text-zinc-500 font-bold ml-1">مستوى ثقة الوكيل:</span> 
+                            <span className={`font-bold ${
+                              agent.confidenceColor === 'green' ? 'text-emerald-400' :
+                              agent.confidenceColor === 'amber' ? 'text-amber-400' :
+                              'text-rose-400'
+                            }`}>{agent.confidence}% ({agent.confidenceLabel || (agent.confidence >= 70 ? 'عالية' : agent.confidence >= 40 ? 'متوسطة' : 'منخفضة')})</span>
+                          </div>
+
                         {agent.sources?.length > 0 && (
-                          <div className="pt-4 border-t border-white/5">
+                          <div>
                             <div className="text-xs text-zinc-500 mb-2 flex items-center justify-start gap-1.5">
                               <HelpCircle size={12} />
                               <span>المصادر والمراجع</span>
@@ -1230,7 +1216,8 @@ ${oldDescription}
                             </div>
                           </div>
                         )}
-                      </motion.div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>

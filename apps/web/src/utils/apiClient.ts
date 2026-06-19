@@ -1,4 +1,4 @@
-import { useStore } from '../store/useStore';
+// Removed useStore import to prevent circular dependency
 
 const getApiUrl = () => {
   const metaEnv = (import.meta as any).env;
@@ -19,7 +19,7 @@ interface FetchOptions extends RequestInit {
 }
 
 export async function apiClient(endpoint: string, options: FetchOptions = {}) {
-  const { token, logout } = useStore.getState();
+  const token = localStorage.getItem('qoom_token');
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -44,7 +44,8 @@ export async function apiClient(endpoint: string, options: FetchOptions = {}) {
     
     // Auto logout on 401
     if (response.status === 401) {
-      logout();
+      localStorage.removeItem('qoom_token');
+      localStorage.removeItem('qoom_user');
       window.location.href = '/auth';
       throw new Error('Unauthorized');
     }

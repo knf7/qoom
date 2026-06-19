@@ -1,5 +1,6 @@
 console.log('=== main.ts execution started ===');
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 
 import { env } from './config/env.config';
@@ -12,7 +13,10 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
+  // Enable Trust Proxy for Rate Limiting behind reverse proxies (Nginx/Vercel)
+  app.set('trust proxy', 1);
 
   // 1. Establish custom WebSocket Adapter for rapid connection cycles
   app.useWebSocketAdapter(new WsAdapter(app));

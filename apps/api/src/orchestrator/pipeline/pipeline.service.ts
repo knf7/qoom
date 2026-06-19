@@ -388,31 +388,32 @@ ${projectDescription}
       .map((a: any) => `${a.agentName}: ${a.sections.analysis.content}`);
 
     let biggestChallenge = 'المخاطر التنظيمية والتشغيلية';
-    let qoomScoreReasoning = 'درجة التقييم تعكس التوازن بين الفرص المتاحة والمخاطر المحتملة بناءً على المعطيات الحالية.';
+    let customOneLiner = 'مشروع يحتاج لتقييم دقيق للمخاطر وتحديد أوضح للجمهور المستهدف.';
+    let strategicSynthesis = '';
     
     if (activeAnalyses.length > 0) {
       try {
         const analysesConcat = activeAnalyses.join('\n');
-        const systemPromptSynthesis = `أنت QOOM — محلل ريادي ذكي. اقرأ تحليلات الوكلاء التالية للفكرة واستخلص:
-1. أكبر تحدٍ منفرد وعقبة رئيسية تواجه الفكرة في جملة واحدة قصيرة جداً (80 حرفاً كحد أقصى) باللغة العربية.
-2. تبريراً (Reasoning) من سطر إلى سطرين يشرح سبب الدرجة النهائية للمشروع (${overallScore !== null ? overallScore : 0}/100) بناءً على الأدلة المتاحة، دون حدس أو تفاؤل.
+        const systemPromptSynthesis = `أنت QOOM — محلل ريادي ذكي وخبير استثماري. اقرأ تحليلات الوكلاء التالية للفكرة واستخلص:
+1. سطر تعريفي مخصص (One-Liner) يلخص رأيك الصريح والمباشر في الفكرة. يُمنع منعاً باتاً استخدام العبارة الجاهزة "الفكرة واعدة لكنها تحتاج دراسة سوقية...". بل اكتب رأياً نقدياً يعكس واقع الفكرة بدقة.
+2. فقرة توليفة استراتيجية (Strategic Synthesis) من 3 إلى 4 أسطر متصلة، تُكتب كأنها رأي خبير متصل يقرأ بشكل طبيعي (بدون نقاط أو تعداد)، وتشمل: التبرير لدرجة التقييم الحالية، أكبر تحدي يواجه المشروع، وأهم خطوة قادمة يجب تنفيذها.
 
 يجب أن تعيد الرد بصيغة JSON فقط، مطابق لهذا الهيكل بالضبط:
 {
-  "biggest_challenge": "التحدي الأكبر هنا",
-  "qoom_score_reasoning": "التبرير هنا"
+  "custom_one_liner": "الرأي المخصص هنا",
+  "strategic_synthesis": "فقرة التوليفة هنا"
 }`;
 
-        const prompt = `اقرأ هذه التحليلات واستخلص المطلوب بـ JSON:\n${analysesConcat}`;
+        const prompt = `الدرجة الحالية: ${overallScore !== null ? overallScore : 0}/100\nاقرأ هذه التحليلات واستخلص المطلوب بـ JSON:\n${analysesConcat}`;
         const result = await this.gemini.queryModel(systemPromptSynthesis, prompt, 3, undefined, 'FLASH');
         
         if (result && result.trim()) {
           const parsedResult = JSON.parse(result);
-          if (parsedResult.biggest_challenge) {
-            biggestChallenge = parsedResult.biggest_challenge.replace(/[.\n]/g, '');
+          if (parsedResult.custom_one_liner && parsedResult.custom_one_liner.trim().length > 5) {
+            customOneLiner = parsedResult.custom_one_liner.trim();
           }
-          if (parsedResult.qoom_score_reasoning) {
-            qoomScoreReasoning = parsedResult.qoom_score_reasoning.trim();
+          if (parsedResult.strategic_synthesis && parsedResult.strategic_synthesis.trim().length > 10) {
+            strategicSynthesis = parsedResult.strategic_synthesis.trim();
           }
         }
       } catch (e) {
@@ -431,24 +432,18 @@ ${projectDescription}
 
     let confidenceLevelEn = overallConfidenceLabel === 'عالية' ? 'High' : overallConfidenceLabel === 'متوسطة' ? 'Medium' : 'Low';
 
-    const qoomScoreText = `<div dir="rtl"><strong>درجة قُوم (Qoom Score):</strong> <span class="num-ltr">${scoreVal}/100</span><br/><br/>
-<strong>مستوى الثقة:</strong> ${overallConfidenceLabel}<br/><br/>
-<strong>القرار السريع:</strong> ${quickVerdictArabic}<br/><br/>
-<strong>سبب التقييم:</strong><br/>
-${qoomScoreReasoning}</div>`;
-
     const topPriority = actionItems.find((p: any) => p.priority === 'HIGH') || actionItems[0] || { text: 'إجراء دراسة جدوى أولية.' };
-    const synthesisSummary = `الفكرة واعدة لكنها تحتاج دراسة سوقية وتقنية أعمق.
-أكبر تحدٍ: ${biggestChallenge}.
-أول خطوة: ${topPriority.text}
+    
+    // Fallback if AI fails to generate strategicSynthesis
+    if (!strategicSynthesis) {
+      strategicSynthesis = `بناءً على التقييم (${scoreVal}/100)، يواجه المشروع تحديات رئيسية أبرزها ${biggestChallenge}. للتقدم بنجاح، نوصي بأن تكون الخطوة الأولى هي ${topPriority.text}`;
+    }
 
-<div class="mt-6 p-5 bg-[#0a0f16] border border-cyan-500/20 rounded-2xl text-sm leading-relaxed text-zinc-300 shadow-[0_0_20px_rgba(6,182,212,0.05)]">
-  ${qoomScoreText}
-</div>`.trim();
+    const synthesisSummary = `<div dir="rtl" class="leading-loose text-zinc-300 text-sm md:text-base">${strategicSynthesis}</div>`;
 
     // Build the consolidated V3.0 JSON report
     const ideaTitle = scanRecord?.project?.title || 'عنوان الفكرة';
-    const ideaSubtitle = scanRecord?.project?.description ? (scanRecord.project.description.substring(0, 100) + '...') : 'تحليل الفكرة المقترحة';
+    const ideaSubtitle = scanRecord?.project?.description ? scanRecord.project.description : 'تحليل الفكرة المقترحة';
     const scanDate = new Date().toISOString().split('T')[0];
 
     const consolidatedReport = {
@@ -470,12 +465,12 @@ ${qoomScoreReasoning}</div>`;
         confidence: avgConfidence,
         confidenceLabel: overallConfidenceLabel,
         confidenceColor: overallConfidenceColor,
-        oneLiner,
+        oneLiner: customOneLiner,
         keyInsight
       },
       agents: agentsList,
       synthesis: {
-        title: '🧠 التوليفة الاستراتيجية',
+        title: 'التوليفة الاستراتيجية',
         summary: synthesisSummary,
         content: synthesisSummary,
         actionItems
