@@ -163,11 +163,8 @@ export class ScanService {
                          now.getUTCMonth() === lastReset.getUTCMonth() &&
                          now.getUTCDate() === lastReset.getUTCDate();
 
-    let availableCredits = user.scanCredits;
-
     // Reset credits if it's a new UTC day
     if (!isSameDayUTC) {
-      availableCredits = 2;
       await this.prisma.user.update({
         where: { id: userId },
         data: { scanCredits: 2, lastCreditResetAt: now }
@@ -175,7 +172,13 @@ export class ScanService {
       this.logger.log(`Daily credits reset for user ${userId}.`);
     }
 
-    if (availableCredits <= 0) {
+    // ATOMIC DEDUCTION: Prevent concurrent race conditions
+    const deductResult = await this.prisma.user.updateMany({
+      where: { id: userId, scanCredits: { gt: 0 } },
+      data: { scanCredits: { decrement: 1 } }
+    });
+
+    if (deductResult.count === 0) {
       const tomorrow = new Date(now);
       tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
       tomorrow.setUTCHours(0, 0, 0, 0);
@@ -185,112 +188,114 @@ export class ScanService {
       throw new BadRequestException(`لقد استنفدت الفرص المتاحة لك لليوم. يتجدد رصيدك (فحصين مجانيين) تلقائياً عند منتصف الليل (بعد ${hours} ساعة و ${mins} دقيقة).`);
     }
 
-    // 2. Proactive security check: run PromptFirewallService unified pipeline (Heuristics -> AI scoring -> Policy engine)
-    let sanitizedDescription: string;
     try {
-      const securityVerdict = await PromptFirewallService.runFirewallPipeline(
-        project.description,
-        (sys, prompt, retries, schema) => this.gemini.queryModel(sys, prompt, retries, schema)
-      );
+      // 2. Proactive security check: run PromptFirewallService unified pipeline (Heuristics -> AI scoring -> Policy engine)
+      let sanitizedDescription: string;
+      try {
+        const securityVerdict = await PromptFirewallService.runFirewallPipeline(
+          project.description,
+          (sys, prompt, retries, schema) => this.gemini.queryModel(sys, prompt, retries, schema)
+        );
 
-      if (securityVerdict.status === 'BLOCK') {
-        this.logger.error(`[Security Block] Scan blocked by Policy Engine. Risk Score: ${securityVerdict.riskScore}, Category: ${securityVerdict.category}, Reason: ${securityVerdict.reason}`);
-        throw new BadRequestException(securityVerdict.reason);
+        if (securityVerdict.status === 'BLOCK') {
+          this.logger.error(`[Security Block] Scan blocked by Policy Engine. Risk Score: ${securityVerdict.riskScore}, Category: ${securityVerdict.category}, Reason: ${securityVerdict.reason}`);
+          throw new BadRequestException(securityVerdict.reason);
+        }
+
+        if (securityVerdict.status === 'FLAG') {
+          this.logger.warn(`[Security Flag] Scan flagged by Policy Engine. Risk Score: ${securityVerdict.riskScore}, Category: ${securityVerdict.category}, Reason: ${securityVerdict.reason}`);
+          
+          // Log to database AuditLog as a FLAG record
+          await this.prisma.auditLog.create({
+            data: {
+              action: 'SECURITY_FLAGGED',
+              userId,
+              details: JSON.stringify({
+                projectId: project.id,
+                riskScore: securityVerdict.riskScore,
+                category: securityVerdict.category,
+                reason: securityVerdict.reason,
+              }),
+            },
+          });
+        }
+
+        sanitizedDescription = securityVerdict.sanitized;
+      } catch (err) {
+        if (err instanceof PromptFirewallException) {
+          throw new BadRequestException(err.message);
+        }
+        throw err;
+      }
+      
+      // 3. [Completeness Gate] - Accepting all ideas for problem inference v3.0
+
+      // 4. Prevent parallel scan spam
+      const activeScan = await this.prisma.scan.findFirst({
+        where: {
+          projectId: project.id,
+          status: { in: ['PENDING', 'PROCESSING'] },
+        },
+      });
+
+      if (activeScan) {
+        throw new BadRequestException('A strategic scan is already in progress for this project. Please wait for it to complete.');
       }
 
-      if (securityVerdict.status === 'FLAG') {
-        this.logger.warn(`[Security Flag] Scan flagged by Policy Engine. Risk Score: ${securityVerdict.riskScore}, Category: ${securityVerdict.category}, Reason: ${securityVerdict.reason}`);
-        
-        // Log to database AuditLog as a FLAG record
-        await this.prisma.auditLog.create({
-          data: {
-            action: 'SECURITY_FLAGGED',
-            userId,
-            details: JSON.stringify({
-              projectId: project.id,
-              riskScore: securityVerdict.riskScore,
-              category: securityVerdict.category,
-              reason: securityVerdict.reason,
-            }),
-          },
-        });
+      // Update Project Status to READY_FOR_ANALYSIS / ANALYZING
+      await this.prisma.project.update({
+        where: { id: project.id },
+        data: { status: 'READY_FOR_ANALYSIS' }
+      });
+
+      // 5. Create PENDING Scan entity
+      const scan = await this.prisma.scan.create({
+        data: {
+          projectId: project.id,
+          status: 'PENDING',
+          payload: JSON.stringify({
+            submittedDescription: sanitizedDescription,
+            projectId: project.id,
+            projectTitle: project.title,
+            deductedCredit: true,
+          }),
+        },
+      });
+
+      await this.prisma.auditLog.create({
+        data: {
+          action: 'SCAN_TRIGGERED',
+          userId,
+          details: JSON.stringify({ scanId: scan.id, projectId: project.id }),
+        },
+      });
+
+      this.logger.log(`Strategic scan ${scan.id} queued for project ${project.id}`);
+
+      // 6. Enqueue background execution
+      try {
+        await this.queue.enqueueScan(scan.id, project.id, sanitizedDescription);
+      } catch (queueErr) {
+        await this.prisma.scan.update({
+          where: { id: scan.id },
+          data: { status: 'FAILED' }
+        }).catch((e: any) => this.logger.error('Failed to mark scan status as FAILED on enqueue error', e));
+        throw queueErr;
       }
 
-      sanitizedDescription = securityVerdict.sanitized;
+      return {
+        scanId: scan.id,
+        status: 'PENDING',
+        message: 'Analysis scan successfully initialized and enqueued.',
+      };
     } catch (err) {
-      if (err instanceof PromptFirewallException) {
-        throw new BadRequestException(err.message);
-      }
+      // Refund the deducted credit on any failure in the pipeline
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { scanCredits: { increment: 1 } }
+      });
       throw err;
     }
-    
-    // 3. [Completeness Gate] - Accepting all ideas for problem inference v3.0
-
-    // 4. Prevent parallel scan spam
-    const activeScan = await this.prisma.scan.findFirst({
-      where: {
-        projectId: project.id,
-        status: { in: ['PENDING', 'PROCESSING'] },
-      },
-    });
-
-    if (activeScan) {
-      throw new BadRequestException('A strategic scan is already in progress for this project. Please wait for it to complete.');
-    }
-
-    // Update Project Status to READY_FOR_ANALYSIS / ANALYZING
-    await this.prisma.project.update({
-      where: { id: project.id },
-      data: { status: 'READY_FOR_ANALYSIS' }
-    });
-
-    // 5. Create PENDING Scan entity
-    const scan = await this.prisma.scan.create({
-      data: {
-        projectId: project.id,
-        status: 'PENDING',
-        payload: JSON.stringify({
-          submittedDescription: sanitizedDescription,
-          projectId: project.id,
-          projectTitle: project.title,
-          deductedCredit: true,
-        }),
-      },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        action: 'SCAN_TRIGGERED',
-        userId,
-        details: JSON.stringify({ scanId: scan.id, projectId: project.id }),
-      },
-    });
-
-    this.logger.log(`Strategic scan ${scan.id} queued for project ${project.id}`);
-
-    // 6. Enqueue background execution
-    try {
-      await this.queue.enqueueScan(scan.id, project.id, sanitizedDescription);
-    } catch (queueErr) {
-      await this.prisma.scan.update({
-        where: { id: scan.id },
-        data: { status: 'FAILED' }
-      }).catch((e: any) => this.logger.error('Failed to mark scan status as FAILED on enqueue error', e));
-      throw queueErr;
-    }
-
-    // Deduct 1 credit for this scan
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { scanCredits: { decrement: 1 } },
-    });
-    this.logger.log(`Deducted 1 scan credit from user ${userId}. Remaining: ${availableCredits - 1}`);
-
-    return {
-      scanId: scan.id,
-      status: 'PENDING',
-      message: 'Analysis scan successfully initialized and enqueued.',
-    };
   }
 
   /**

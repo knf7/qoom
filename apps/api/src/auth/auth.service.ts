@@ -12,7 +12,7 @@ import { randomUUID } from 'crypto';
 
 // Pre-computed dummy hash to prevent timing-based email enumeration.
 // Cost factor 12, generated once at module load so login latency is minimal.
-const DUMMY_HASH = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGPjCcMv4MuJOb2YXkBMbGJz3S6';
+const DUMMY_HASH = '$2b$10$EpRnTzVlqHNP0.fUbXUwSOyuiNb/NdGEA.yGEZ4qEcwMw.mB/P/yG';
 
 @Injectable()
 export class AuthService {
@@ -63,7 +63,7 @@ export class AuthService {
     }
 
     // Hash password with high work factor
-    const hashedPassword = await bcrypt.hash(input.password, 12);
+    const hashedPassword = await bcrypt.hash(input.password, 10);
 
     // Create user and log the audit event
     const user = await this.prisma.user.create({
@@ -267,7 +267,7 @@ export class AuthService {
       throw new UnauthorizedException('انتهت صلاحية رمز التحقق.');
     }
 
-    const hashedPassword = await bcrypt.hash(input.newPassword, 12);
+    const hashedPassword = await bcrypt.hash(input.newPassword, 10);
 
     await this.prisma.user.update({
       where: { email: input.email },

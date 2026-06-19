@@ -787,7 +787,11 @@ ${oldDescription}
                return [];
              };
              const agentsList = getAgentsListFallback(scan);
-            const synthesis = payload.synthesis || {
+             const validScores = agentsList.filter((a: any) => a.score != null).map((a: any) => a.score);
+             const calculatedScore = validScores.length > 0 ? Math.round(validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
+             executiveSummary.score = executiveSummary.score ?? calculatedScore;
+             
+             const synthesis = payload.synthesis || {
               title: 'التوليفة الاستراتيجية',
               summary: scan?.recommendation || 'بناءً على آراء الوكلاء...',
               content: scan?.recommendation || 'بناءً على آراء الوكلاء...',
@@ -924,8 +928,8 @@ ${oldDescription}
                           {/* Interaction logic */}
                           <div className="min-h-[160px] flex flex-col justify-center">
                             {feedbackConfirmed === null ? (
-                              <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-4 bg-white/5 p-5 rounded-2xl border border-white/10">
-                                <span className="text-xs text-zinc-300 font-bold">هل المشكلة المستنتجة صحيحة وتطابق نيتك؟</span>
+                              <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white/5 p-5 rounded-2xl border border-white/10" dir="rtl">
+                                <span className="text-sm text-zinc-300 font-bold text-right w-full md:w-auto">هل المشكلة المستنتجة صحيحة وتطابق نيتك؟</span>
                                 <div className="flex gap-3">
                                   <button
                                     onClick={async () => {
@@ -1120,23 +1124,23 @@ ${oldDescription}
                         <div className="space-y-6">
                           {agent.sections?.analysis?.content && (
                             <div>
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
-                                <Sparkles size={14} className="text-cyan-400" />
+                              <div className="font-bold text-cyan-400 text-sm mb-2 flex items-center justify-start gap-1.5">
+                                <Sparkles size={16} className="text-cyan-400" />
                                 <span>{cleanTitle(agent.sections.analysis.title) || 'التحليل'}</span>
                               </div>
-                              <p className="text-xs md:text-sm text-zinc-400 leading-relaxed bg-[#080808] p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
+                              <p className="text-xs md:text-sm text-cyan-50 leading-relaxed bg-cyan-500/10 p-5 rounded-2xl border border-cyan-500/20 whitespace-pre-wrap shadow-[0_0_15px_rgba(6,182,212,0.05)]">
                                 {agent.sections.analysis.content}
                               </p>
                             </div>
                           )}
 
                           {agent.sections?.recommendation?.content && (
-                            <div className="pt-4 border-t border-white/5">
-                              <div className="font-bold text-zinc-200 text-sm mb-2 flex items-center justify-start gap-1.5">
-                                <Zap size={14} className="text-purple-400" />
+                            <div className="pt-4 mt-4 border-t border-white/5">
+                              <div className="font-bold text-emerald-400 text-sm mb-2 flex items-center justify-start gap-1.5">
+                                <Zap size={16} className="text-emerald-400" />
                                 <span>{cleanTitle(agent.sections.recommendation.title) || 'التوصية'}</span>
                               </div>
-                              <p className="text-xs md:text-sm text-white font-bold leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5">
+                              <p className="text-xs md:text-sm text-emerald-50 font-bold leading-relaxed bg-emerald-500/10 p-5 rounded-2xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
                                 {agent.sections.recommendation.content}
                               </p>
                             </div>

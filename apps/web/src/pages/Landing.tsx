@@ -41,7 +41,7 @@ export default function Landing() {
     setError(null);
     try {
       // 1. Create a project
-      const title = `فكرة مشروع - ${new Date().toLocaleDateString('ar-SA')}`;
+      const title = description.split(' ').slice(0, 5).join(' ');
       const project = await apiClient('/projects', {
         method: 'POST',
         data: { title, description },

@@ -93,7 +93,7 @@ export default function Copilot() {
       const newProject = await apiClient('/projects', {
         method: 'POST',
         data: { 
-          title: combinedIdea.substring(0, 30) + '...',
+          title: combinedIdea.split(' ').slice(0, 5).join(' '),
           description: combinedIdea 
         },
       });
