@@ -300,8 +300,8 @@ ${projectDescription}
       none: noneCount
     };
 
-    // Calculate overall score from FULL status agents
-    const scoredAgents = agentsList.filter((a: any) => a.status === 'FULL' && a.score !== null);
+    // Calculate overall score from FULL or PARTIAL status agents
+    const scoredAgents = agentsList.filter((a: any) => (a.status === 'FULL' || a.status === 'PARTIAL') && a.score !== null && a.score !== undefined);
     let overallScore: number | null = null;
     if (scoredAgents.length > 0) {
       const sum = scoredAgents.reduce((acc, a: any) => acc + a.score, 0);

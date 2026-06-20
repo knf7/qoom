@@ -46,6 +46,7 @@ export default function Dashboard() {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError(null);
     setIsSubmitting(true);
     try {
@@ -373,6 +374,11 @@ export default function Dashboard() {
                     <span className="text-xs font-mono text-zinc-500 num-ltr glass px-2.5 py-1 rounded-full border border-white/10">
                       {project.scans?.length || 0} {lang === 'ar' ? 'فحوصات' : 'SCANS'}
                     </span>
+                    {project.scans?.[0]?.score != null && (
+                      <span className="text-xs font-mono text-emerald-400 glass px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10">
+                        {project.scans[0].score}/100
+                      </span>
+                    )}
                   </div>
                   
                   {validatingProjectId === project.id ? (

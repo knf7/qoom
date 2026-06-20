@@ -31,6 +31,7 @@ export default function Copilot() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (rawIdea) {
@@ -87,7 +88,9 @@ export default function Copilot() {
   };
 
   const startVCEvaluation = async () => {
+    if (isSubmitting) return;
     try {
+      setIsSubmitting(true);
       setError(null);
       const combinedIdea = profile?.profile?.summary + '\n' + profile?.profile?.value_proposition;
       const newProject = await apiClient('/projects', {
@@ -110,6 +113,7 @@ export default function Copilot() {
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء الاتصال بالخادم.');
+      setIsSubmitting(false);
     }
   };
 
@@ -367,10 +371,11 @@ export default function Copilot() {
                 
                 <button 
                   onClick={startVCEvaluation} 
-                  className="bg-white hover:bg-zinc-200 text-black px-8 py-3 rounded-full text-sm font-bold hover:scale-102 transition-all flex items-center justify-center gap-2 shadow-[0_4px_25px_rgba(255,255,255,0.1)]"
+                  disabled={isSubmitting}
+                  className={`bg-white text-black px-8 py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-[0_4px_25px_rgba(255,255,255,0.1)] transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-zinc-200 hover:scale-102'}`}
                 >
-                  <Shield size={16} /> 
-                  <span>إطلاق تقييم قُوم المتكامل</span>
+                  {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />} 
+                  <span>{isSubmitting ? 'جاري التحضير...' : 'إطلاق تقييم قُوم المتكامل'}</span>
                 </button>
               </div>
 

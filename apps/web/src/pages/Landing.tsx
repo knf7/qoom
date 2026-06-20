@@ -37,6 +37,7 @@ export default function Landing() {
 
   const handleLaunchScan = async () => {
     if (description.trim().length < 5) return;
+    if (isValidating || isSubmitting) return;
     setIsValidating(true);
     setError(null);
     try {

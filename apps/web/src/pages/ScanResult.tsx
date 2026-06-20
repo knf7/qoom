@@ -164,34 +164,16 @@ ${oldDescription}
     }
     
     setShowFinalReport(false);
-    fetchScanSnapshot();
     reset(); 
+    fetchScanSnapshot();
 
     return () => {
       if (wsRef.current) wsRef.current.close();
       stopPolling();
-      reset();
+      // Notice: We do NOT call reset() here anymore, to avoid clearing 
+      // the agents state when navigating quickly between scans.
     };
   }, [scanId, token, user]);
-
-  useEffect(() => {
-    // Scan progress is now driven purely by real-time WebSocket events.
-    // However, if the scan hangs for more than 3 minutes, show a failure timeout.
-    let timeoutId: NodeJS.Timeout;
-    if (isScanning && scan && (scan.status === 'PENDING' || scan.status === 'PROCESSING')) {
-      timeoutId = setTimeout(() => {
-        setError('تعذر إكمال الفحص بسبب ضغط على السيرفر. يرجى إعادة المحاولة لاحقاً.');
-        setScanning(false);
-        stopPolling();
-        if (wsRef.current) {
-          wsRef.current.close();
-        }
-      }, 3 * 60 * 1000); // 3 minutes timeout
-    }
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [isScanning, scan?.status]);
 
   const fetchScanSnapshot = async () => {
     try {
@@ -215,12 +197,32 @@ ${oldDescription}
         stopPolling();
         setScanProgress(100);
         setShowFinalReport(true);
+        setScanning(false);
       }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ ما.');
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Scan progress is now driven purely by real-time WebSocket events.
+    // However, if the scan hangs for more than 3 minutes, show a failure timeout.
+    let timeoutId: NodeJS.Timeout;
+    if (isScanning && scan && (scan.status === 'PENDING' || scan.status === 'PROCESSING')) {
+      timeoutId = setTimeout(() => {
+        setError('تعذر إكمال الفحص بسبب ضغط على السيرفر. يرجى إعادة المحاولة لاحقاً.');
+        setScanning(false);
+        stopPolling();
+        if (wsRef.current) {
+          wsRef.current.close();
+        }
+      }, 3 * 60 * 1000); // 3 minutes timeout
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isScanning, scan?.status]);
 
   const initializeWebSocketStream = () => {
     if (wsRef.current) return;
@@ -414,7 +416,7 @@ ${oldDescription}
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden" dir="rtl">
         <div className="w-12 h-12 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin" />
       </div>
     );
@@ -422,7 +424,7 @@ ${oldDescription}
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center" dir="rtl">
         <div className="glass p-8 text-center max-w-md rounded-2xl border-rose-500/20">
           <div className="w-16 h-16 mx-auto bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mb-6 border border-rose-500/20">
             <Shield size={32} />
@@ -440,7 +442,7 @@ ${oldDescription}
   const score = scan?.score !== undefined && scan?.score !== null ? scan.score : null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pt-24 pb-32 grid-bg">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pt-24 pb-32 grid-bg" dir="rtl">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
         
         <TopTimeline />
