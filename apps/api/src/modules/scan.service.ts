@@ -163,13 +163,15 @@ export class ScanService {
                          now.getUTCMonth() === lastReset.getUTCMonth() &&
                          now.getUTCDate() === lastReset.getUTCDate();
 
-    // Reset credits if it's a new UTC day
+    // Reset credits if it's a new UTC day using atomic condition
     if (!isSameDayUTC) {
-      await this.prisma.user.update({
-        where: { id: userId },
+      const resetResult = await this.prisma.user.updateMany({
+        where: { id: userId, lastCreditResetAt: lastReset },
         data: { scanCredits: 2, lastCreditResetAt: now }
       });
-      this.logger.log(`Daily credits reset for user ${userId}.`);
+      if (resetResult.count > 0) {
+        this.logger.log(`Daily credits reset for user ${userId}.`);
+      }
     }
 
     // ATOMIC DEDUCTION: Prevent concurrent race conditions

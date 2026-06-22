@@ -120,7 +120,7 @@ export const AgentResponseSchema = z.object({
   agentIcon: z.string().optional(),
   status: z.enum(['FULL', 'PARTIAL', 'NONE']),
   statusLabel: z.string().optional(),
-  statusColor: z.enum(['emerald', 'amber', 'rose']).optional(),
+  statusColor: z.enum(['emerald', 'amber', 'rose', 'cyan']).optional(),
   confidence: z.number().int().min(0).max(100),
   confidenceLabel: z.string(),
   score: z.number().int().min(0).max(10).nullable(),
