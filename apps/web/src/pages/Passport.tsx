@@ -163,18 +163,25 @@ export default function Passport() {
                     {t('passport.synthesisTitle')}
                   </h3>
                   <p 
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeUILanguage(passport.summary, lang)) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeUILanguage(passport.summary, lang), {
+                      USE_PROFILES: { html: true },
+                      FORBID_TAGS: ["script", "iframe", "object", "embed", "applet", "base"],
+                      FORBID_ATTR: ["onmouseover", "onload", "onerror"]
+                    }) }}
                     className="text-xs md:text-sm text-zinc-300 leading-relaxed font-light"
                   />
-                </div>
 
                 <div className="glass rounded-xl p-6">
                   <h3 className="text-xs uppercase font-extrabold text-zinc-500 tracking-wider mb-2 flex items-center gap-1.5 font-mono">
                     <CheckSquare size={14} className="text-cyan-400" />
                     {t('passport.actionTitle')}
                   </h3>
-                  <p 
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeUILanguage(passport.recommendation, lang)) }}
+                  <p
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeUILanguage(passport.recommendation, lang), {
+                      USE_PROFILES: { html: true },
+                      FORBID_TAGS: ["script", "iframe", "object", "embed", "applet", "base"],
+                      FORBID_ATTR: ["onmouseover", "onload", "onerror"]
+                    }) }}
                     className="text-xs text-zinc-400 leading-relaxed"
                   />
                 </div>

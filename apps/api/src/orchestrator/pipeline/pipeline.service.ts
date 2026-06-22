@@ -275,7 +275,7 @@ ${projectDescription}
             a.confidenceColor = 'green';
           } else if (confidence >= 40) {
             a.confidenceLabel = 'متوسطة';
-            a.confidenceColor = 'cyan';
+            a.confidenceColor = 'amber';
           } else {
             a.confidenceLabel = 'منخفضة';
             a.confidenceColor = 'red';

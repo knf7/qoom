@@ -390,7 +390,13 @@ ${oldDescription}
   };
 
   const renderCleanText = (text: string) => {
-    return { __html: DOMPurify.sanitize(text) };
+    return { 
+      __html: DOMPurify.sanitize(text, {
+        USE_PROFILES: { html: true },
+        FORBID_TAGS: ["script", "iframe", "object", "embed", "applet", "base"],
+        FORBID_ATTR: ["onmouseover", "onload", "onerror"]
+      }) 
+    };
   };
 
   // --- UI COMPONENTS ---
@@ -767,8 +773,8 @@ ${oldDescription}
                        agentId: key,
                        agentName: agentTitleMap[key] || key,
                        status: agentData.status || 'FULL',
-                       statusLabel: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'تحليل كامل' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'فشل التحليل' : 'تحليل جزئي',
-                       statusColor: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'emerald' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'rose' : 'cyan',
+                       statusLabel: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'تحليل كامل' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'فشل التحليل' : 'تحليل جزئي (بيانات ناقصة)',
+                       statusColor: agentData.status === 'SUCCESS' || agentData.status === 'FULL' ? 'emerald' : agentData.status === 'FAILED' || agentData.status === 'FAIL' ? 'rose' : 'amber',
                        confidence: parsedAnalysis.confidence || 80,
                        confidenceLabel: (parsedAnalysis.confidence || 80) >= 70 ? 'عالية' : (parsedAnalysis.confidence || 80) >= 40 ? 'متوسطة' : 'منخفضة',
                        score: agentData.score !== undefined ? agentData.score : null,
@@ -1323,7 +1329,11 @@ ${oldDescription}
                   </h2>
                   <div 
                     className="text-zinc-300 text-sm md:text-base leading-relaxed whitespace-pre-wrap mb-8 bg-black/30 p-6 rounded-2xl border border-white/5"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(synthesis.summary || synthesis.content) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(synthesis.summary || synthesis.content, {
+                      USE_PROFILES: { html: true },
+                      FORBID_TAGS: ["script", "iframe", "object", "embed", "applet", "base"],
+                      FORBID_ATTR: ["onmouseover", "onload", "onerror"]
+                    }) }}
                   />
                   
                   <div className="w-full h-px bg-white/10 mb-8" />

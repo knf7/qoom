@@ -147,37 +147,45 @@ export class ScanService {
       throw new BadRequestException('الموقع مزدحم حالياً بطلبات فحص أخرى. يرجى المحاولة بعد قليل.');
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { scanCredits: true, lastCreditResetAt: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User profile not found.');
-    }
-
     const now = new Date();
-    const lastReset = user.lastCreditResetAt || new Date(0);
     
-    const isSameDayUTC = now.getUTCFullYear() === lastReset.getUTCFullYear() &&
-                         now.getUTCMonth() === lastReset.getUTCMonth() &&
-                         now.getUTCDate() === lastReset.getUTCDate();
-
-    // Reset credits if it's a new UTC day using atomic condition
-    if (!isSameDayUTC) {
-      const resetResult = await this.prisma.user.updateMany({
-        where: { id: userId, lastCreditResetAt: lastReset },
-        data: { scanCredits: 2, lastCreditResetAt: now }
+    // Execute atomic transaction for daily reset and deduction
+    const deductResult = await this.prisma.$transaction(async (tx) => {
+      const userRecord = await tx.user.findUnique({
+        where: { id: userId },
+        select: { scanCredits: true, lastCreditResetAt: true },
       });
-      if (resetResult.count > 0) {
+
+      if (!userRecord) {
+        throw new NotFoundException('User profile not found.');
+      }
+
+      let currentCredits = userRecord.scanCredits;
+      const lastReset = userRecord.lastCreditResetAt || new Date(0);
+      
+      const isSameDayUTC = now.getUTCFullYear() === lastReset.getUTCFullYear() &&
+                           now.getUTCMonth() === lastReset.getUTCMonth() &&
+                           now.getUTCDate() === lastReset.getUTCDate();
+
+      // Reset logic
+      if (!isSameDayUTC) {
+        currentCredits = 2;
+        await tx.user.update({
+          where: { id: userId },
+          data: { scanCredits: 2, lastCreditResetAt: now }
+        });
         this.logger.log(`Daily credits reset for user ${userId}.`);
       }
-    }
 
-    // ATOMIC DEDUCTION: Prevent concurrent race conditions
-    const deductResult = await this.prisma.user.updateMany({
-      where: { id: userId, scanCredits: { gt: 0 } },
-      data: { scanCredits: { decrement: 1 } }
+      // Deduction logic
+      if (currentCredits <= 0) {
+        return { count: 0 };
+      }
+
+      return await tx.user.updateMany({
+        where: { id: userId, scanCredits: { gt: 0 } },
+        data: { scanCredits: { decrement: 1 } }
+      });
     });
 
     if (deductResult.count === 0) {

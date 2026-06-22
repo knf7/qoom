@@ -1,0 +1,52 @@
+name: Enterprise QA CI
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+
+jobs:
+  test:
+    name: 🛡️ Security & E2E Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+        
+      - name: 📦 Install QA Dependencies
+        run: cd apps/qa && npm install
+
+      - name: 🏗️ Build Application
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: 🎭 Install Playwright Browsers
+        run: cd apps/qa && npx playwright install --with-deps
+
+      - name: 🧪 Run E2E Tests (Playwright)
+        run: cd apps/qa && npx playwright test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: "test-secret"
+          PORT: 3000
+
+      - name: 📊 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/qa/playwright-report/
+          retention-days: 7
