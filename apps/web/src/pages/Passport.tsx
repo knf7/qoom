@@ -170,6 +170,7 @@ export default function Passport() {
                     }) }}
                     className="text-xs md:text-sm text-zinc-300 leading-relaxed font-light"
                   />
+                </div>
 
                 <div className="glass rounded-xl p-6">
                   <h3 className="text-xs uppercase font-extrabold text-zinc-500 tracking-wider mb-2 flex items-center gap-1.5 font-mono">
