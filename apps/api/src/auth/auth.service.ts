@@ -87,11 +87,14 @@ export class AuthService {
 
     this.logger.log(`Successful registration for user: ${user.id}`);
 
-    const accessToken = this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      role: user.role as 'USER' | 'ADMIN',
-    });
+    const accessToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        role: user.role as 'USER' | 'ADMIN',
+      },
+      { expiresIn: '7d' }
+    );
 
     return {
       accessToken,
@@ -138,11 +141,14 @@ export class AuthService {
 
     this.logger.log(`Successful login for user: ${user.id}`);
 
-    const accessToken = this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      role: user.role as 'USER' | 'ADMIN',
-    });
+    const accessToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        role: user.role as 'USER' | 'ADMIN',
+      },
+      { expiresIn: '7d' }
+    );
 
     return {
       accessToken,
@@ -221,11 +227,11 @@ export class AuthService {
 
     this.logger.log(`Password reset code generated for ${email}`);
 
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isDevelopment = process.env.NODE_ENV === 'development';
 
     return {
       message: 'تم إرسال رمز التحقق بنجاح.',
-      ...(!isProduction && { devCode: code }),
+      ...(isDevelopment && { devCode: code }),
     };
   }
 
@@ -270,12 +276,15 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(input.newPassword, 10);
 
     await this.prisma.user.update({
-      where: { email: input.email },
+      where: { email },
       data: { password: hashedPassword },
     });
 
-    await this.prisma.auditLog.update({
-      where: { id: logRecord.id },
+    await this.prisma.auditLog.updateMany({
+      where: {
+        userId: user.id,
+        action: 'PASSWORD_RESET_CODE',
+      },
       data: { action: 'PASSWORD_RESET_USED' },
     }).catch(() => {});
 

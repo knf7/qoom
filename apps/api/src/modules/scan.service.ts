@@ -28,13 +28,44 @@ export class ScanService {
    * Analyzes the idea description intelligently. If elements are missing, returns MCQ questions.
    */
   async validateIdeaWithAI(description: string): Promise<any> {
-    this.logger.log('[Smart Pre-Validation] Always passing to support Flexible Analyst model...');
-    return {
-      status: 'READY',
-      completion_score: 100,
-      missing_fields: [],
-      questions: []
-    };
+    // Basic validation checks before passing to Pipeline
+    const trimmed = description.trim();
+    if (trimmed.length < 30) {
+      throw new BadRequestException('الفكرة قصيرة جداً. يرجى كتابة وصف أكثر تفصيلاً (30 حرف على الأقل).');
+    }
+    if (trimmed.length > 3000) {
+      throw new BadRequestException('الوصف طويل جداً. يرجى اختصاره إلى 3000 حرف كحد أقصى.');
+    }
+    this.logger.log(`[Smart Pre-Validation] Idea passed basic length checks. Sending to Gemini...`);
+
+    try {
+      const rawResponse = await this.gemini.queryModel(
+        SMART_PREVALIDATION_PROMPT,
+        trimmed,
+        2,
+        PREVALIDATION_SCHEMA
+      );
+
+      // Clean markdown wrappers if any
+      const cleanJson = rawResponse.replace(/```(?:json)?\s*([\s\S]*?)\s*```/, '$1').trim();
+      const parsed = JSON.parse(cleanJson);
+
+      return {
+        status: parsed.status || 'READY',
+        completion_score: typeof parsed.completion_score === 'number' ? parsed.completion_score : 100,
+        missing_fields: Array.isArray(parsed.missing_fields) ? parsed.missing_fields : [],
+        questions: Array.isArray(parsed.questions) ? parsed.questions : []
+      };
+    } catch (err: any) {
+      this.logger.warn(`[Smart Pre-Validation] Failed to validate with AI, falling back to READY. Error: ${err.message}`);
+      // Fallback to READY if AI fails (Fail-Open for pre-validation to not block user)
+      return {
+        status: 'READY',
+        completion_score: 80,
+        missing_fields: [],
+        questions: []
+      };
+    }
   }
 
   /**
@@ -42,7 +73,7 @@ export class ScanService {
    */
   async deleteProject(userId: string, projectId: string): Promise<any> {
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, userId },
+      where: { id: projectId, userId, deletedAt: null },
     });
     if (!project) {
       throw new NotFoundException('Project not found.');
@@ -62,10 +93,15 @@ export class ScanService {
    */
   async updateProject(userId: string, projectId: string, updates: { description?: string; title?: string }): Promise<any> {
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, userId },
+      where: { id: projectId, userId, deletedAt: null },
     });
     if (!project) {
       throw new NotFoundException('Project not found.');
+    }
+
+    const hasChanges = updates.title || updates.description;
+    if (!hasChanges) {
+      throw new BadRequestException('لا توجد تغييرات لتحديثها.');
     }
 
     return this.prisma.project.update({
@@ -73,7 +109,7 @@ export class ScanService {
       data: {
         ...(updates.description && { description: updates.description }),
         ...(updates.title && { title: updates.title }),
-        status: 'DRAFT', // Reset to DRAFT to allow editing/validation again
+        status: 'DRAFT',
       },
     });
   }
@@ -86,7 +122,7 @@ export class ScanService {
     this.logger.log(`[Quota Check] Verifying project limits for user: ${userId}`);
 
     const projectCount = await this.prisma.project.count({
-      where: { userId },
+      where: { userId, deletedAt: null },
     });
 
     if (projectCount >= 100) {
@@ -111,7 +147,7 @@ export class ScanService {
    */
   async getProjectsByUser(userId: string): Promise<any[]> {
     return this.prisma.project.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       include: {
         scans: {
@@ -139,7 +175,7 @@ export class ScanService {
     // Global concurrent limit: Max 3 scans processing at the same time globally to prevent server overload
     const globalActiveScans = await this.prisma.scan.count({
       where: {
-        status: { in: ['PENDING', 'PROCESSING'] }
+        status: { in: ['PENDING', 'RUNNING'] }
       }
     });
 
@@ -240,36 +276,38 @@ export class ScanService {
       
       // 3. [Completeness Gate] - Accepting all ideas for problem inference v3.0
 
-      // 4. Prevent parallel scan spam
-      const activeScan = await this.prisma.scan.findFirst({
-        where: {
-          projectId: project.id,
-          status: { in: ['PENDING', 'PROCESSING'] },
-        },
-      });
-
-      if (activeScan) {
-        throw new BadRequestException('A strategic scan is already in progress for this project. Please wait for it to complete.');
-      }
-
-      // Update Project Status to READY_FOR_ANALYSIS / ANALYZING
-      await this.prisma.project.update({
-        where: { id: project.id },
-        data: { status: 'READY_FOR_ANALYSIS' }
-      });
-
-      // 5. Create PENDING Scan entity
-      const scan = await this.prisma.scan.create({
-        data: {
-          projectId: project.id,
-          status: 'PENDING',
-          payload: JSON.stringify({
-            submittedDescription: sanitizedDescription,
+      // 4. Prevent parallel scan spam + Create PENDING Scan entity (ATOMIC)
+      const scan = await this.prisma.$transaction(async (tx) => {
+        const activeScan = await tx.scan.findFirst({
+          where: {
             projectId: project.id,
-            projectTitle: project.title,
-            deductedCredit: true,
-          }),
-        },
+            status: { in: ['PENDING', 'RUNNING'] },
+          },
+        });
+
+        if (activeScan) {
+          throw new BadRequestException('A strategic scan is already in progress for this project. Please wait for it to complete.');
+        }
+
+        // Update Project Status to READY_FOR_ANALYSIS / ANALYZING
+        await tx.project.update({
+          where: { id: project.id },
+          data: { status: 'READY_FOR_ANALYSIS' }
+        });
+
+        // 5. Create PENDING Scan entity
+        return tx.scan.create({
+          data: {
+            projectId: project.id,
+            status: 'PENDING',
+            payload: JSON.stringify({
+              submittedDescription: sanitizedDescription,
+              projectId: project.id,
+              projectTitle: project.title,
+              deductedCredit: true,
+            }),
+          },
+        });
       });
 
       await this.prisma.auditLog.create({
@@ -300,8 +338,8 @@ export class ScanService {
       };
     } catch (err) {
       // Refund the deducted credit on any failure in the pipeline
-      await this.prisma.user.update({
-        where: { id: userId },
+      await this.prisma.user.updateMany({
+        where: { id: userId, scanCredits: { lt: 2 } },
         data: { scanCredits: { increment: 1 } }
       });
       throw err;
@@ -321,6 +359,11 @@ export class ScanService {
     });
 
     if (!scan) {
+      throw new NotFoundException('The requested scan report was not found.');
+    }
+
+    // Ensure the parent project is not soft-deleted
+    if (scan.project.deletedAt) {
       throw new NotFoundException('The requested scan report was not found.');
     }
 

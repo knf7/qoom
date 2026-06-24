@@ -82,12 +82,11 @@ ${oldDescription}
       
       const newScan = await apiClient('/scan', {
         method: 'POST',
-        body: JSON.stringify({ projectId })
+        data: { projectId }
       });
 
       // Refresh page view for the new scan
       navigate(`/scan/${newScan.scanId || newScan.id}`);
-      window.location.reload();
     } catch (err: any) {
       console.error('Failed to re-submit problem:', err);
       setReSubmitError(err.message || 'حدث خطأ أثناء إعادة إرسال الفكرة. يرجى المحاولة ثانية.');
@@ -119,7 +118,7 @@ ${oldDescription}
   };
 
   const getAgentText = (res: any, parsed: any) => {
-    if (res.status === 'ERROR' || res.dataAvailability === 'NONE' && res.analysis?.includes('فشل')) return 'فشل في الاتصال بالوكيل';
+    if ((res.status === 'ERROR' || res.dataAvailability === 'NONE') && res.analysis?.includes('فشل')) return 'فشل في الاتصال بالوكيل';
     return parsed.analysis || res.analysis || '';
   };
 
@@ -316,11 +315,7 @@ ${oldDescription}
     };
   };
 
-  const calculateOverallScore = () => {
-    if (!scan?.results || scan.results.length === 0) return 0;
-    const total = scan.results.reduce((acc: number, r: any) => acc + (r.score || 0), 0);
-    return Math.round(total / scan.results.length);
-  };
+
 
   const getVerdictDetails = (verdictStr: string) => {
     const v = verdictStr?.toUpperCase() || '';
@@ -796,7 +791,7 @@ ${oldDescription}
              };
              const agentsList = getAgentsListFallback(scan);
              const validScores = agentsList.filter((a: any) => a.score != null).map((a: any) => a.score);
-             const calculatedScore = validScores.length > 0 ? Math.round(validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
+             const calculatedScore = validScores.length > 0 ? Math.round((validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) * 10) : null;
              executiveSummary.score = executiveSummary.score ?? calculatedScore;
              
              const synthesis = payload.synthesis || {

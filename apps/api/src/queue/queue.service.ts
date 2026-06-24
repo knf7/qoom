@@ -51,7 +51,7 @@ export class QueueService implements OnModuleInit {
     try {
       const stuckScans = await this.prisma.scan.findMany({
         where: {
-          status: { in: ['PENDING', 'PROCESSING'] }
+          status: { in: ['PENDING', 'RUNNING'] }
         },
         include: { project: true }
       });
@@ -165,7 +165,7 @@ export class QueueService implements OnModuleInit {
     try {
       await this.prisma.scan.update({
         where: { id: scanId },
-        data: { status: 'PROCESSING' },
+        data: { status: 'RUNNING' },
       });
 
       // The pipeline service now automatically broadcasts events to WebSockets via EventBus

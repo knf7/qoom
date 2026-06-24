@@ -161,37 +161,10 @@ ${projectDescription}
     let realityEvidence: any = null;
     let auditResult: any = null;
 
-    const agentsPromise = Promise.allSettled(
-      agents.map(async (agentName) => {
-        let val: any;
-        if (agentName === 'MarketAgent') {
-          val = await this.executionEngine.marketAgent.analyze(agentDescription);
-        } else if (agentName === 'CompetitionAgent') {
-          val = await this.executionEngine.competitionAgent.analyze(agentDescription);
-        } else if (agentName === 'MonetizationAgent') {
-          val = await this.executionEngine.monetizationAgent.analyze(agentDescription);
-        } else if (agentName === 'FeasibilityAgent') {
-          val = await this.executionEngine.feasibilityAgent.analyze(agentDescription);
-        } else if (agentName === 'RiskAgent') {
-          val = await this.executionEngine.riskAgent.analyze(agentDescription);
-        }
-        
-        // Canary token leakage check
-        const stringifiedVal = JSON.stringify(val);
-        if (CanaryTokenManager.isLeaked(canaryToken, stringifiedVal)) {
-          this.logger.error(`[Security Warning] Canary token leaked by agent ${agentName}! Flagging output.`);
-          throw new Error(`Security Exception: Prompt leakage detected from agent ${agentName}.`);
-        }
-
-        this.eventBus.emit('agent.completed', {
-          scanId,
-          agentType: agentName,
-          agentScore: val.score || 0,
-          message: `${agentName} completed with availability: ${val.status}`
-        });
-
-        return val;
-      })
+    const agentsPromise = this.executionEngine.executeAgentsConcurrently(
+      agentDescription,
+      scanId,
+      agents
     );
 
     const realityPromise = (async () => {
@@ -208,7 +181,7 @@ ${projectDescription}
       }
     })();
 
-    const [results, realityOutcome] = await Promise.all([
+    const [agentResultsOutput, realityOutcome] = await Promise.all([
       agentsPromise,
       realityPromise
     ]);
@@ -218,12 +191,23 @@ ${projectDescription}
       auditResult = realityOutcome.audit;
     }
 
-    // Map outcomes
+    // Map outcomes securely
     const agentResults: any = {};
-    results.forEach((r, i) => {
-      const agentName = agents[i];
-      if (r.status === 'fulfilled') {
-        agentResults[agentName] = r.value;
+    for (const agentName of agents) {
+      let r = (agentResultsOutput as any)[agentName];
+
+      // Canary token leakage check
+      if (r && r.status !== 'FAILED' && r.status !== 'NONE') {
+        const stringifiedVal = JSON.stringify(r);
+        if (CanaryTokenManager.isLeaked(canaryToken, stringifiedVal)) {
+          this.logger.error(`[Security Warning] Canary token leaked by agent ${agentName}! Flagging output.`);
+          this.eventBus.emit('agent.failed', { scanId, agentType: agentName, message: 'Security Exception: Prompt leakage detected.' });
+          r = null; // Force fallback mapping
+        }
+      }
+
+      if (r && r.status !== 'FAILED' && r.status !== 'NONE') {
+        agentResults[agentName] = r;
       } else {
         agentResults[agentName] = {
           agentId: mapAgentNameToId(agentName),
@@ -238,15 +222,19 @@ ${projectDescription}
           scoreLabel: null,
           sections: {
             known: { title: '✅ ما أعرفه', items: [] },
-            unknown: { title: '❓ ما لا أعرفه', items: ['فشل في الاتصال بالوكيل'] },
-            analysis: { title: '💡 التحليل', content: 'فشل في الاتصال بالوكيل' },
-            recommendation: { title: '🎯 التوصية', content: 'فشل في الحصول على توصية من الوكيل' }
+            unknown: { title: '❓ ما لا أعرفه', items: ['فشل في الاتصال بالوكيل أو تم حجب النتيجة لدواعي أمنية'] },
+            analysis: { title: '💡 التحليل', content: 'تعذر الحصول على تحليل من هذا الوكيل.' },
+            recommendation: { title: '🎯 التوصية', content: 'لا توجد توصية متاحة.' }
           },
           sources: []
         };
-        this.eventBus.emit('agent.failed', { scanId, agentType: agentName, message: 'Execution error' });
       }
-    });
+    }
+    
+    // Add DebateModeratorAgent result if it exists
+    if (agentResultsOutput['DebateModeratorAgent']) {
+      agentResults['DebateModeratorAgent'] = agentResultsOutput['DebateModeratorAgent'];
+    }
 
     // Determine counts for progress bar
     let fullCount = 0;
@@ -300,28 +288,43 @@ ${projectDescription}
       none: noneCount
     };
 
-    // Calculate overall score from FULL or PARTIAL status agents
+    // Calculate overall score using weighted scoring based on agent importance
+    const agentWeights: Record<string, number> = {
+      'market': 0.25,
+      'competition': 0.20,
+      'finance': 0.20,
+      'feasibility': 0.20,
+      'risk': 0.15
+    };
     const scoredAgents = agentsList.filter((a: any) => (a.status === 'FULL' || a.status === 'PARTIAL') && a.score !== null && a.score !== undefined);
     let overallScore: number | null = null;
     if (scoredAgents.length > 0) {
-      const sum = scoredAgents.reduce((acc, a: any) => acc + a.score, 0);
-      overallScore = Math.round((sum / (scoredAgents.length * 10)) * 100);
+      let weightedSum = 0;
+      let totalWeight = 0;
+      scoredAgents.forEach((a: any) => {
+        const weight = agentWeights[a.agentId] || 0.20;
+        weightedSum += (a.score || 0) * weight;
+        totalWeight += weight;
+      });
+      overallScore = totalWeight > 0 ? Math.round((weightedSum / totalWeight / 10) * 100) : null;
     }
 
-    // Determine verdict and color
+    // Determine verdict and color — fair weighted scoring
     let verdict = 'فكرة واعدة (تحتاج تطوير)';
     let verdictColor = 'amber';
+    const successfulAgents = fullCount + partialCount;
     if (noneCount === 5) {
       verdict = 'فشل التحليل';
       verdictColor = 'rose';
-    } else if (fullCount === 5) {
-      if (overallScore !== null && overallScore >= 60) {
-        verdict = 'فكرة عبقرية (ادعم الفكرة)';
-        verdictColor = 'emerald';
-      } else {
-        verdict = 'تحتاج تعديل جوهري';
-        verdictColor = 'rose';
-      }
+    } else if (successfulAgents >= 3 && overallScore !== null && overallScore >= 70) {
+      verdict = 'فكرة عبقرية (ادعم الفكرة)';
+      verdictColor = 'emerald';
+    } else if (successfulAgents >= 3 && overallScore !== null && overallScore >= 50) {
+      verdict = 'فكرة واعدة (إمكانات قوية)';
+      verdictColor = 'cyan';
+    } else if (overallScore !== null && overallScore < 35) {
+      verdict = 'تحتاج تعديل جوهري';
+      verdictColor = 'rose';
     }
 
     // Determine overall confidence (average of active agents)
@@ -498,7 +501,7 @@ ${projectDescription}
       recommendation: consolidatedReport.synthesis.content,
       status: 'COMPLETED',
       score: overallScore,
-      verdict: noneCount === 5 ? 'FAILED' : (fullCount === 5 ? ((overallScore !== null && overallScore >= 60) ? 'PASS' : 'FAIL') : 'PARTIAL'),
+      verdict: noneCount === 5 ? 'FAILED' : ((successfulAgents >= 3 && overallScore !== null && overallScore >= 50) ? 'PASS' : (overallScore !== null && overallScore < 35 ? 'FAIL' : 'PARTIAL')),
       confidence: avgConfidence / 100,
       problemInference,
       refinedIdea,
@@ -508,22 +511,5 @@ ${projectDescription}
     };
   }
 
-  // Legacy helper functions kept for backward compatibility
-  private generateSummary(results: any[]): string {
-    const full = results.filter(r => r.status === 'FULL').length;
-    const partial = results.filter(r => r.status === 'PARTIAL').length;
-    const none = results.filter(r => r.status === 'NONE').length;
-    if (full === 5) return 'جميع الوكلاء حللوا الفكرة بشكل كامل.';
-    if (full > 0 && partial > 0) return `${full} تحليل كامل، ${partial} تحليل جزئي، ${none} لا يوجد بيانات.`;
-    if (partial > 0) return `${partial} تحليل جزئي، ${none} لا يوجد بيانات.`;
-    return 'لا يوجد بيانات كافية لدى معظم الوكلاء.';
-  }
 
-  private async generateRecommendation(results: any[]): Promise<string> {
-    const recommendations = results
-      .filter(r => r.sections?.recommendation?.content)
-      .map(r => r.sections.recommendation.content);
-    if (recommendations.length === 0) return 'لا توجد توصيات كافية.';
-    return recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n');
-  }
 }

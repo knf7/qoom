@@ -201,7 +201,7 @@ export default function Passport() {
                     <span className={`text-xl font-bold font-mono ${colors.text} ${colors.glowText} num-ltr`}>{passport.score}</span>
                   </div>
 
-                  {passport.agentPassportScores.map((score: any) => {
+                  {passport.agentPassportScores?.map((score: any) => {
                     const agentDisplayName = t(`landing.agents.${score.agentType}.name`);
                     return (
                       <motion.div

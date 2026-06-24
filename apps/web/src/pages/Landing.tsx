@@ -41,17 +41,17 @@ export default function Landing() {
     setIsValidating(true);
     setError(null);
     try {
-      // 1. Create a project
+      // 1. Validate idea
+      await apiClient('/validate-idea', {
+        method: 'POST',
+        data: { description },
+      });
+
+      // 2. Create a project
       const title = description.split(' ').slice(0, 5).join(' ');
       const project = await apiClient('/projects', {
         method: 'POST',
         data: { title, description },
-      });
-
-      // 2. Validate idea
-      await apiClient('/validate-idea', {
-        method: 'POST',
-        data: { description },
       });
 
       setIsValidating(false);

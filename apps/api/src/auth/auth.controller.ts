@@ -19,14 +19,17 @@ import {
 } from '@qoom/types';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../security/guards/jwt.guard';
+import { RateLimitGuard, RateLimit } from '../security/guards/rate-limit.guard';
 import { CurrentUser } from '../security/decorators/user.decorator';
 import { ZodError } from 'zod';
 
 @Controller('auth')
+@UseGuards(RateLimitGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @RateLimit(3, 60000) // 3 registrations per minute per IP
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() body: any,
@@ -47,6 +50,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @RateLimit(5, 60000) // 5 login attempts per minute per IP
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() body: any,
@@ -73,6 +77,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @RateLimit(3, 60000) // 3 requests per minute per IP
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: any) {
     try {
@@ -88,6 +93,7 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @RateLimit(5, 60000) // 5 attempts per minute per IP
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: any) {
     try {

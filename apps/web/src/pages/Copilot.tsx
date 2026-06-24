@@ -92,7 +92,9 @@ export default function Copilot() {
     try {
       setIsSubmitting(true);
       setError(null);
-      const combinedIdea = profile?.profile?.summary + '\n' + profile?.profile?.value_proposition;
+      const summaryText = profile?.profile?.summary || rawIdea || '';
+      const vpText = profile?.profile?.value_proposition || '';
+      const combinedIdea = `${summaryText}\n${vpText}`.trim() || rawIdea;
       const newProject = await apiClient('/projects', {
         method: 'POST',
         data: { 

@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { isValidProjectTransition, isValidScanTransition, ProjectStatus, ScanStatus } from '@qoom/types';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -52,6 +54,39 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           // If the query is not explicitly looking for deleted items, filter them
           if (params.args.where.deletedAt === undefined) {
             params.args.where.deletedAt = null;
+          }
+        }
+      }
+
+      return next(params);
+    });
+
+    // Register State Machine Enforcement Middleware
+    this.$use(async (params: any, next: any) => {
+      const stateModels = ['Project', 'Scan'];
+      
+      if (params.action === 'update' && stateModels.includes(params.model)) {
+        if (params.args.data && params.args.data.status) {
+          const toState = params.args.data.status;
+          
+          // Only fetch current state if we are actually updating the status
+          const currentState = await (this as any)[params.model.toLowerCase()].findUnique({
+            where: params.args.where,
+            select: { status: true }
+          });
+
+          if (currentState) {
+            const fromState = currentState.status;
+            
+            if (params.model === 'Project' && !isValidProjectTransition(fromState as ProjectStatus, toState as ProjectStatus)) {
+              this.logger.warn(`Blocked invalid Project transition: ${fromState} -> ${toState}`);
+              throw new BadRequestException(`Invalid Project state transition from ${fromState} to ${toState}`);
+            }
+            
+            if (params.model === 'Scan' && !isValidScanTransition(fromState as ScanStatus, toState as ScanStatus)) {
+              this.logger.warn(`Blocked invalid Scan transition: ${fromState} -> ${toState}`);
+              throw new BadRequestException(`Invalid Scan state transition from ${fromState} to ${toState}`);
+            }
           }
         }
       }

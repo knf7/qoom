@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ScanService } from './scan.service';
-import { CreateProjectInput, CreateScanInput, CreateProjectSchema } from '@qoom/types';
+import { CreateProjectInput, CreateScanInput, CreateProjectSchema, CreateScanSchema } from '@qoom/types';
 import { z } from 'zod';
 import { JwtAuthGuard } from '../security/guards/jwt.guard';
 import { CurrentUser } from '../security/decorators/user.decorator';
@@ -81,9 +81,18 @@ export class ScanController {
   @HttpCode(HttpStatus.OK)
   async validateIdea(
     @CurrentUser() user: any,
-    @Body() body: { description: string }
+    @Body() body: any
   ) {
-    return this.scanService.validateIdeaWithAI(body.description);
+    const schema = z.object({ description: z.string().min(10).max(2000) });
+    try {
+      const parsed = schema.parse(body);
+      return this.scanService.validateIdeaWithAI(parsed.description);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        throw new BadRequestException(err.issues[0]?.message || 'بيانات غير صالحة');
+      }
+      throw err;
+    }
   }
 
   @Post('scan')
@@ -91,9 +100,17 @@ export class ScanController {
   @HttpCode(HttpStatus.OK)
   async triggerScan(
     @CurrentUser() user: any,
-    @Body() body: CreateScanInput
+    @Body() body: any
   ) {
-    return this.scanService.triggerScan(user.id, body);
+    try {
+      const parsed = CreateScanSchema.parse(body);
+      return this.scanService.triggerScan(user.id, parsed);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        throw new BadRequestException(err.issues[0]?.message || 'بيانات غير صالحة');
+      }
+      throw err;
+    }
   }
 
   @Get('scan/:id')
@@ -124,8 +141,20 @@ export class ScanController {
   @HttpCode(HttpStatus.OK)
   async submitSupportRequest(
     @CurrentUser() user: any,
-    @Body() body: { email: string; message: string }
+    @Body() body: any
   ) {
-    return this.scanService.submitSupportRequest(user.id, body.email, body.message);
+    const schema = z.object({
+      email: z.string().email().max(255),
+      message: z.string().min(10).max(2000)
+    });
+    try {
+      const parsed = schema.parse(body);
+      return this.scanService.submitSupportRequest(user.id, parsed.email, parsed.message);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        throw new BadRequestException(err.issues[0]?.message || 'بيانات غير صالحة');
+      }
+      throw err;
+    }
   }
 }

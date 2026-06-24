@@ -189,11 +189,19 @@ export default function Dashboard() {
           className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4"
         >
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 glass rounded-full mb-4">
-              <Shield size={14} className="text-cyan-400" />
-              <span className="text-xs font-mono text-cyan-400 tracking-widest uppercase">
-                {lang === 'ar' ? 'نظام تشغيل الاستخبارات V9' : 'Intelligence OS V9'}
-              </span>
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 glass rounded-full w-fit">
+                <Shield size={14} className="text-cyan-400" />
+                <span className="text-xs font-mono text-cyan-400 tracking-widest uppercase">
+                  {lang === 'ar' ? 'نظام تشغيل الاستخبارات V9' : 'Intelligence OS V9'}
+                </span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 glass rounded-full border border-amber-500/20 bg-amber-500/10 w-fit">
+                <Scan size={14} className="text-amber-400" />
+                <span className="text-xs font-mono text-amber-400 font-bold">
+                  {lang === 'ar' ? `الرصيد: ${user?.scanCredits || 0} فحص متبقي` : `Credits: ${user?.scanCredits || 0} Scans Left`}
+                </span>
+              </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               <span className="text-gradient-cyan">
@@ -272,7 +280,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex justify-end pt-4">
                         <button type="submit" disabled={description.trim().length < 5} className="btn-primary flex items-center">
-                          {lang === 'ar' ? 'بدء الفحص والتحليل' : 'SUBMIT TARGET'}
+                          {lang === 'ar' ? 'إنشاء مشروع' : 'CREATE TARGET'}
                         </button>
                       </div>
                     </motion.form>
