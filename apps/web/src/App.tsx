@@ -68,13 +68,7 @@ export default function App() {
             </Suspense>
           </main>
 
-          {/* Global Minimalist Footer */}
-          <footer className="w-full py-8 text-center text-[10px] text-zinc-600 border-t border-white/5 bg-[#0a0a0a] relative z-10 select-none">
-          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <span>© {new Date().getFullYear()} Qoom AI Operating System. Inc. All rights reserved.</span>
-            <span className="text-cyan-500/60 font-sans tracking-wide">نظام قُوم الاستخباري // توافق الوكلاء المتعددين</span>
-          </div>
-        </footer>
+
         </div>
       </div>
       <VercelAnalytics />

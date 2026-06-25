@@ -113,9 +113,6 @@ export default function TopNav() {
               بيتا (Beta)
             </span>
           </div>
-          <span className="text-[9px] font-mono tracking-[0.2em] text-zinc-500 uppercase hidden sm:block">
-            Venture Intelligence OS
-          </span>
         </Link>
 
         {/* Center: Navigation Pills */}
