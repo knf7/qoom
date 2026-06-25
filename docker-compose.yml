@@ -40,7 +40,7 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: super_secret_qoom_jwt_signing_key_at_least_12_chars
       FRONTEND_URL: http://localhost
-      GEMINI_API_KEY: ${GEMINI_API_KEY} # Passed from host env
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY} # Passed from host env
     ports:
       - "3001:3001"
 

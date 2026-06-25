@@ -5,21 +5,19 @@ FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
-RUN npm install -g pnpm
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* turbo.json tsconfig.json ./
+COPY package.json package-lock.json turbo.json tsconfig.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/types/package.json ./packages/types/
 COPY packages/prompts/package.json ./packages/prompts/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 COPY apps/web/ ./apps/web/
 COPY packages/ ./packages/
 
 # Compile build bundle
-RUN pnpm --filter @qoom/web build
+RUN npx turbo run build --filter=@qoom/web
 
 # ==========================================
 # 2. Server Stage (Nginx)
@@ -44,7 +42,7 @@ server {
         add_header X-Frame-Options "DENY" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' ws: http://localhost:3001; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' ws: wss: https://qoom.onrender.com http://localhost:3001; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';" always;
     }
 }
 EOF
