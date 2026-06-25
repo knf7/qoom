@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build -w @qoom/types && npm run build -w @qoom/ui && npm run build -w @qoom/web && rm -rf dist && cp -r apps/web/dist dist",
+  "buildCommand": "npm run build -w @qoom/types && npm run build -w @qoom/ui && npm run build -w @qoom/web",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "framework": null,
