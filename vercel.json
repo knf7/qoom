@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npx turbo run build --filter=@qoom/web",
-  "outputDirectory": "apps/web/dist",
+  "buildCommand": "npx turbo run build --filter=@qoom/web && cp -r apps/web/dist ./dist",
+  "outputDirectory": "dist",
   "installCommand": "npm ci",
   "framework": "vite"
 }
