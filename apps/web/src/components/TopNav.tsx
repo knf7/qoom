@@ -101,6 +101,7 @@ export default function TopNav() {
   if (location.pathname === '/auth') return null;
 
   return (
+    <>
     <nav className="fixed top-0 left-0 w-full z-50 py-4 px-6 select-none pointer-events-none" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto flex items-center justify-between w-full pointer-events-auto">
         
@@ -439,5 +440,67 @@ export default function TopNav() {
       </AnimatePresence>
 
     </nav>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav 
+        className="md:hidden fixed bottom-4 left-4 right-4 z-50 glass rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] p-2 pointer-events-auto"
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      >
+        <div className="flex items-center justify-around w-full">
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                  isActive('/dashboard') ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
+                }`}
+              >
+                <Settings size={18} className={isActive('/dashboard') ? 'text-cyan-400' : ''} />
+                <span className="text-[9px] font-bold">المشاريع</span>
+              </Link>
+              <Link
+                to="/copilot"
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                  isActive('/copilot') ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
+                }`}
+              >
+                <User size={18} className={isActive('/copilot') ? 'text-cyan-400' : ''} />
+                <span className="text-[9px] font-bold">مساعد الأفكار</span>
+              </Link>
+              <Link
+                to="/analytics"
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                  isActive('/analytics') ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
+                }`}
+              >
+                <BarChart3 size={18} className={isActive('/analytics') ? 'text-cyan-400' : ''} />
+                <span className="text-[9px] font-bold">التحليلات</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/"
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                  isActive('/') ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
+                }`}
+              >
+                <Sparkles size={18} className={isActive('/') ? 'text-cyan-400' : ''} />
+                <span className="text-[9px] font-bold">الرئيسية</span>
+              </Link>
+              <Link
+                to="/auth?mode=login"
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                  isActive('/auth') ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-white'
+                }`}
+              >
+                <User size={18} className={isActive('/auth') ? 'text-cyan-400' : ''} />
+                <span className="text-[9px] font-bold">تسجيل الدخول</span>
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
+    </>
   );
 }
