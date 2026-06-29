@@ -256,8 +256,6 @@ export default function Landing() {
               className="absolute inset-2 border border-dashed border-white/10 rounded-full"
             />
             <Cpu size={32} className="text-white mb-2" />
-            <span className="text-sm font-black tracking-widest font-sans">QOOM CORE</span>
-            <span className="text-[8px] font-mono text-zinc-600 tracking-wider">INTELLIGENCE NETWORK</span>
           </div>
 
           {/* Background orbit circles */}

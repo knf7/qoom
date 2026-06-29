@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ParallelExecutionEngine } from '../execution/execution.engine';
+import { ScoringEngine } from '../../scoring/scoring.engine';
 import { GeminiService } from '../../ai/gemini.service';
 import { EventBusService } from '../events/event-bus.service';
 import { PrismaService } from '../../database/prisma.service';
@@ -18,7 +19,8 @@ export class PipelineService {
     private readonly eventBus: EventBusService,
     private readonly prisma: PrismaService,
     private readonly realityIntelligenceService: RealityIntelligenceService,
-    private readonly realityAuditorAgent: RealityAuditorAgent
+    private readonly realityAuditorAgent: RealityAuditorAgent,
+    private readonly scoringEngine: ScoringEngine
   ) {}
 
   async executeScan(
@@ -42,7 +44,7 @@ export class PipelineService {
       this.logger.log(`Project ${scanRecord.projectId} status updated to ANALYZING.`);
     }
 
-    const agents = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent'];
+    const agents = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent', 'ValidatorAgent'];
     for (const agent of agents) {
       this.eventBus.emit('agent.started', { scanId, agentType: agent });
     }
@@ -137,6 +139,7 @@ ${projectDescription}
       if (name === 'MonetizationAgent') return 'finance';
       if (name === 'FeasibilityAgent') return 'feasibility';
       if (name === 'RiskAgent') return 'risk';
+      if (name === 'ValidatorAgent') return 'validator';
       return 'orchestrator';
     };
 
@@ -146,6 +149,7 @@ ${projectDescription}
       if (name === 'MonetizationAgent') return 'النموذج المالي';
       if (name === 'FeasibilityAgent') return 'الجدوى الفنية';
       if (name === 'RiskAgent') return 'تحليل المخاطر';
+      if (name === 'ValidatorAgent') return 'التحقق والتدقيق';
       return name;
     };
 
@@ -155,6 +159,7 @@ ${projectDescription}
       if (name === 'MonetizationAgent') return '💰';
       if (name === 'FeasibilityAgent') return '⚙️';
       if (name === 'RiskAgent') return '⚠️';
+      if (name === 'ValidatorAgent') return '🛡️';
       return '🤖';
     };
 
@@ -236,6 +241,16 @@ ${projectDescription}
       agentResults['DebateModeratorAgent'] = agentResultsOutput['DebateModeratorAgent'];
     }
 
+    // Run Scoring Engine to calculate deterministic scores
+    const scoringResult = this.scoringEngine.calculateScores(agentResults);
+    const calculatedOverallScore = scoringResult.finalScore;
+
+    for (const agentName of agents) {
+      if (agentResults[agentName] && scoringResult.agentScores[agentName] !== undefined) {
+        agentResults[agentName].score = scoringResult.agentScores[agentName];
+      }
+    }
+
     // Determine counts for progress bar
     let fullCount = 0;
     let partialCount = 0;
@@ -245,7 +260,8 @@ ${projectDescription}
       agentResults['CompetitionAgent'],
       agentResults['MonetizationAgent'],
       agentResults['FeasibilityAgent'],
-      agentResults['RiskAgent']
+      agentResults['RiskAgent'],
+      agentResults['ValidatorAgent']
     ].filter(Boolean);
 
     // Recalculate each active agent's confidence dynamically and honestly
@@ -302,11 +318,12 @@ ${projectDescription}
       let weightedSum = 0;
       let totalWeight = 0;
       scoredAgents.forEach((a: any) => {
-        const weight = agentWeights[a.agentId] || 0.20;
+        const weight = agentWeights[a.agentId] || 0.10; // Default weight for others like validator
         weightedSum += (a.score || 0) * weight;
         totalWeight += weight;
       });
-      overallScore = totalWeight > 0 ? Math.round((weightedSum / totalWeight / 10) * 100) : null;
+      // Use calculatedOverallScore from ScoringEngine if available, fallback to manual weighted sum
+      overallScore = calculatedOverallScore !== null ? calculatedOverallScore : (totalWeight > 0 ? Math.round((weightedSum / totalWeight / 10) * 100) : null);
     }
 
     // Determine verdict and color — fair weighted scoring

@@ -11,7 +11,8 @@ export class ScoringEngine {
     MonetizationAgent: 0.15,
     FeasibilityAgent: 0.15,
     RiskAgent: 0.15,
-    RegulatoryAgent: 0.25
+    RegulatoryAgent: 0.10,
+    ValidatorAgent: 0.15
   };
 
   /**
@@ -43,6 +44,12 @@ export class ScoringEngine {
     RegulatoryAgent: (d) => {
       if (d.licensing_difficulty == null || d.compliance_cost == null || d.data_sovereignty_risk == null || d.saudization_impact == null) return null;
       return Math.round(((11 - d.licensing_difficulty) + (11 - d.compliance_cost) + (11 - d.data_sovereignty_risk) + (11 - d.saudization_impact)) * 2.5);
+    },
+    ValidatorAgent: (d) => {
+      const keys = Object.keys(d);
+      if (keys.length < 4) return null;
+      const sum = keys.slice(0, 4).reduce((acc, key) => acc + (typeof d[key] === 'number' ? d[key] : 5), 0);
+      return Math.round(sum * 2.5);
     },
   };
 

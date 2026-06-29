@@ -747,7 +747,7 @@ ${oldDescription}
                const results = scanData?.results;
                if (results && Array.isArray(results)) {
                  const list: any[] = [];
-                 const agentKeys = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent'];
+                 const agentKeys = ['MarketAgent', 'CompetitionAgent', 'MonetizationAgent', 'FeasibilityAgent', 'RiskAgent', 'ValidatorAgent'];
                  for (const key of agentKeys) {
                    const agentData = results.find((r: any) => r.agentType === key);
                    if (agentData) {
@@ -761,7 +761,8 @@ ${oldDescription}
                        CompetitionAgent: 'المنافسة والميزة التنافسية',
                        MonetizationAgent: 'الجدوى المالية والأرباح',
                        FeasibilityAgent: 'الجدوى التقنية والتنفيذ',
-                       RiskAgent: 'المخاطر والتحديات'
+                       RiskAgent: 'المخاطر والتحديات',
+                       ValidatorAgent: 'التحقق والتدقيق'
                      };
 
                      list.push({
@@ -844,12 +845,12 @@ ${oldDescription}
                     <div className="bg-black/35 p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-cyan-500/30 transition-all duration-300 hover:scale-[1.02]">
                       <span className="text-xs text-zinc-500 mb-1">التقدم الإجمالي للوكلاء</span>
                       <span className="text-lg font-bold text-white mb-2">
-                        {meta.progressBar.full + meta.progressBar.partial}/5 وكلاء
+                        {meta.progressBar.full + meta.progressBar.partial}/6 وكلاء
                       </span>
                       <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full"
-                          style={{ width: `${((meta.progressBar.full + meta.progressBar.partial) / 5) * 100}%` }}
+                          style={{ width: `${((meta.progressBar.full + meta.progressBar.partial) / 6) * 100}%` }}
                         />
                       </div>
                     </div>

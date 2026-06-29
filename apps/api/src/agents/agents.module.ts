@@ -10,6 +10,7 @@ import { DebateModeratorAgent } from './debate-moderator.agent';
 import { ClarityAgent } from './clarity.agent';
 import { IdeaReconstructionAgent } from './idea-reconstruction.agent';
 import { RealityAuditorAgent } from './reality-auditor.agent';
+import { ValidatorAgent } from './validator.agent';
 import { AiModule } from '../ai/ai.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { AiModule } from '../ai/ai.module';
     ClarityAgent,
     IdeaReconstructionAgent,
     RealityAuditorAgent,
+    ValidatorAgent,
   ],
   exports: [
     MarketAgent,
@@ -39,6 +41,7 @@ import { AiModule } from '../ai/ai.module';
     ClarityAgent,
     IdeaReconstructionAgent,
     RealityAuditorAgent,
+    ValidatorAgent,
   ],
 })
 export class AgentsModule {}

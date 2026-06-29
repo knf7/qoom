@@ -6,6 +6,7 @@ import { FeasibilityAgent } from '../../agents/feasibility.agent';
 import { RiskAgent } from '../../agents/risk.agent';
 import { RegulatoryAgent } from '../../agents/regulatory.agent';
 import { DebateModeratorAgent } from '../../agents/debate-moderator.agent';
+import { ValidatorAgent } from '../../agents/validator.agent';
 import { EventBusService } from '../events/event-bus.service';
 import { AgentResponse } from '@qoom/types';
 import { AIResponseValidator } from '@qoom/security';
@@ -18,6 +19,7 @@ export interface AgentResults {
   RiskAgent?: AgentResponse;
   RegulatoryAgent?: AgentResponse;
   DebateModeratorAgent?: AgentResponse;
+  ValidatorAgent?: AgentResponse;
 }
 
 @Injectable()
@@ -32,6 +34,7 @@ export class ParallelExecutionEngine {
     public readonly riskAgent: RiskAgent,
     private readonly regulatoryAgent: RegulatoryAgent,
     private readonly debateModerator: DebateModeratorAgent,
+    private readonly validatorAgent: ValidatorAgent,
     private readonly eventBus: EventBusService
   ) {}
 
@@ -96,6 +99,8 @@ export class ParallelExecutionEngine {
         res = await this.riskAgent.analyze(bundleString);
       } else if (agentName === 'RegulatoryAgent') {
         res = await this.regulatoryAgent.analyze(bundleString);
+      } else if (agentName === 'ValidatorAgent') {
+        res = await this.validatorAgent.analyze(bundleString);
       } else {
         throw new Error(`Unknown agent: ${agentName}`);
       }

@@ -190,12 +190,7 @@ export default function Dashboard() {
         >
           <div>
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 glass rounded-full w-fit">
-                <Shield size={14} className="text-cyan-400" />
-                <span className="text-xs font-mono text-cyan-400 tracking-widest uppercase">
-                  {lang === 'ar' ? 'نظام تشغيل الاستخبارات V9' : 'Intelligence OS V9'}
-                </span>
-              </div>
+
               <div className="inline-flex items-center gap-2 px-3 py-1.5 glass rounded-full border border-amber-500/20 bg-amber-500/10 w-fit">
                 <Scan size={14} className="text-amber-400" />
                 <span className="text-xs font-mono text-amber-400 font-bold">

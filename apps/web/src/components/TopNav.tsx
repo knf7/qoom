@@ -338,7 +338,6 @@ export default function TopNav() {
                 تسجيل الدخول
               </Link>
               <div className="hidden md:flex glass px-3 py-1.5 rounded-full items-center gap-2 border border-white/10">
-                <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">NODE . ONLINE</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
               </div>
             </div>
